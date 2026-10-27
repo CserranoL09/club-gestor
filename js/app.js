@@ -61,13 +61,27 @@ $('logoutBtn').addEventListener('click', () => {
 });
 
 // Supabase
-$('setupBanner').hidden = isConfigured;
+const BANNERS = {
+  'sin-configurar': '<strong>Falta configurar Supabase.</strong> La app funciona en modo de prueba: rellena <code>js/config.js</code> con la Project URL y la clave anon de tu proyecto.',
+  'falta-sql': '<strong>Falta instalar la base de datos.</strong> Pega <code>supabase/instalar.sql</code> en el SQL Editor de Supabase y pulsa Run.',
+  error: '<strong>No se puede conectar con Supabase.</strong> Revisa tu conexión a internet. Si el proyecto lleva días sin usarse, reactívalo desde el panel de Supabase.'
+};
+const STATUS = {
+  ok: ['on', 'Conectado a Supabase'],
+  'falta-sql': ['off', 'Supabase responde, pero falta instalar la base de datos'],
+  error: ['off', 'Sin conexión con Supabase'],
+  'sin-configurar': ['', 'Supabase sin configurar']
+};
 (async () => {
-  const conn = $('connStatus');
   const state = await checkConnection();
-  conn.classList.toggle('on', state === 'ok');
-  conn.classList.toggle('off', state === 'error');
-  conn.title = { ok: 'Conectado a Supabase', error: 'Sin conexión con Supabase', 'sin-configurar': 'Supabase sin configurar' }[state];
+  const conn = $('connStatus');
+  conn.className = 'conn ' + STATUS[state][0];
+  conn.title = STATUS[state][1];
+  conn.setAttribute('aria-label', STATUS[state][1]);
+  const banner = $('setupBanner');
+  banner.hidden = !BANNERS[state];
+  if (BANNERS[state]) banner.innerHTML = BANNERS[state];
 })();
+$('setupBanner').hidden = isConfigured;
 
 startRouter($('main'), getCtx);

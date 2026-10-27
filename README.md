@@ -15,7 +15,8 @@ Se basa en la plantilla de Excel «Control competición TEMPORADA» (estructura 
 1. Crea un proyecto en supabase.com (región de Europa).
 2. Copia la **Project URL** y la clave **anon / publishable** (Project Settings → API).
 3. Escríbelas en `js/config.js`. Nunca pongas la clave `service_role` / secret.
-4. Pega en el SQL Editor los archivos de `supabase/` en el orden que indique cada versión.
+4. En Supabase → SQL Editor → New query, pega todo `supabase/instalar.sql` y pulsa **Run**. Después pega `supabase/tests.sql` y pulsa **Run**: todas las filas deben decir «OK».
+   Los cambios posteriores irán en `supabase/migrations/` (en orden).
 5. En Authentication → URL Configuration, pon como Site URL la dirección de GitHub Pages.
 
 Mientras `js/config.js` tenga los valores de ejemplo, la app se abre en modo de prueba con el aviso «Falta configurar Supabase».
