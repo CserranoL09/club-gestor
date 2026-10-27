@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Club Gestor</title>
+  <script>
+    // GitHub Pages: cualquier ruta desconocida vuelve a la app.
+    var base = location.pathname.split('/').slice(0, 2).join('/') + '/';
+    location.replace(base + (location.hash || '#/inicio'));
+  </script>
+</head>
+<body><p>Redirigiendo a <a href="./">Club Gestor</a>…</p></body>
+</html>

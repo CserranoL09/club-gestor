@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Club Gestor</title>
+  <meta name="description" content="Gestión de la temporada de un equipo de fútbol: sesiones, planificación, partidos y estadísticas.">
+  <meta name="theme-color" content="#0f1419">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M32 4l24 8v18c0 15-10 26-24 30C18 56 8 45 8 30V12z' fill='%2322c55e'/%3E%3Ccircle cx='32' cy='30' r='10' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Saira+Condensed:wght@600;700&family=Oswald:wght@500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <a class="skip" href="#main">Saltar al contenido</a>
+
+  <header class="topbar" id="topbar">
+    <a class="brand" href="#/inicio" aria-label="Ir al inicio">
+      <span class="crest" id="crest" aria-hidden="true"></span>
+      <span class="brand-text">
+        <strong id="clubName">Club Gestor</strong>
+        <small id="clubSub">Temporada sin elegir</small>
+      </span>
+    </a>
+    <div class="ctx" id="ctxBar">
+      <label class="sr-only" for="seasonSel">Temporada</label>
+      <select id="seasonSel" disabled><option>Temporada</option></select>
+      <label class="sr-only" for="teamSel">Equipo</label>
+      <select id="teamSel" disabled><option>Equipo</option></select>
+    </div>
+    <div class="top-actions">
+      <span class="conn" id="connStatus" title="Estado de la conexión">●</span>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Cambiar tema claro u oscuro">◐</button>
+      <button class="icon-btn" id="newsBtn" type="button" aria-label="Novedades">✦<span class="dot" id="newsDot" hidden></span></button>
+      <button class="icon-btn" id="userBtn" type="button" aria-label="Menú del usuario" aria-haspopup="true" aria-expanded="false">☰</button>
+      <div class="menu" id="userMenu" hidden role="menu">
+        <p class="menu-user" id="menuUser">Sin sesión</p>
+        <a role="menuitem" href="#/config">Configuración del club</a>
+        <a role="menuitem" href="#/profesor">Panel del profesor</a>
+        <button role="menuitem" type="button" id="logoutBtn">Cerrar sesión</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="banner" id="setupBanner" hidden>
+    <strong>Falta configurar Supabase.</strong>
+    La app funciona en modo de prueba: rellena <code>js/config.js</code> con la Project URL y la clave anon de tu proyecto.
+  </div>
+
+  <main id="main" tabindex="-1"></main>
+
+  <footer class="foot">
+    <span>Club Gestor <span id="appVersion"></span></span>
+  </footer>
+
+  <dialog id="newsDlg" aria-labelledby="newsTitle">
+    <form method="dialog">
+      <h2 id="newsTitle">Novedades</h2>
+      <div id="newsBody"></div>
+      <div class="dlg-actions"><button class="btn primary" value="ok">Cerrar</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="askDlg" aria-labelledby="askTitle">
+    <form method="dialog">
+      <h2 id="askTitle">¿Seguro?</h2>
+      <p id="askText"></p>
+      <div class="dlg-actions">
+        <button class="btn" value="no" id="askNo">Cancelar</button>
+        <button class="btn primary" value="yes" id="askYes">Aceptar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
