@@ -17,7 +17,15 @@ Se basa en la plantilla de Excel «Control competición TEMPORADA» (estructura 
 3. Escríbelas en `js/config.js`. Nunca pongas la clave `service_role` / secret.
 4. En Supabase → SQL Editor → New query, pega todo `supabase/instalar.sql` y pulsa **Run**. Después pega `supabase/tests.sql` y pulsa **Run**: todas las filas deben decir «OK».
    Los cambios posteriores irán en `supabase/migrations/` (en orden).
-5. En Authentication → URL Configuration, pon como Site URL la dirección de GitHub Pages.
+5. En Authentication → URL Configuration, pon como Site URL la dirección de GitHub Pages y añádela también a Redirect URLs.
+6. Emails: el servicio de correo incluido en Supabase solo envía a los miembros del equipo del proyecto y muy pocos por hora.
+   Para que alumnos y entrenadores puedan registrarse, desactiva **Confirm email** (Authentication → Sign In / Providers → Email)
+   o configura un SMTP propio (Authentication → Emails → SMTP Settings). El enlace por email y «olvidé la contraseña» necesitan SMTP propio para llegar a cualquiera.
+
+## Actualizar la base de datos
+
+Cada versión que cambia la base de datos trae un archivo en `supabase/migrations/`. Pégalos en el SQL Editor **en orden** (001, 002…).
+Una instalación desde cero solo necesita `supabase/instalar.sql`, que ya los incluye.
 
 Mientras `js/config.js` tenga los valores de ejemplo, la app se abre en modo de prueba con el aviso «Falta configurar Supabase».
 

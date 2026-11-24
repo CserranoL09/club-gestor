@@ -1,10 +1,12 @@
 // Página provisional para los módulos que aún no están construidos.
-import { esc } from '../ui.js';
+import { esc, permNote } from '../ui.js';
+import { permission } from '../session.js';
 
 export async function render(el, ctx) {
   const m = ctx.module || {};
   const title = ctx.route?.title || m.name || 'Módulo';
   const prompt = m.prompt || ctx.route?.prompt;
+  const perm = permission(m.perm);
   el.innerHTML = `
     <div class="page-head">
       <div>
@@ -13,6 +15,7 @@ export async function render(el, ctx) {
       </div>
       <a class="btn" href="#/inicio">← Inicio</a>
     </div>
+    ${permNote(perm)}
     <div class="card empty">
       <div class="big">🚧</div>
       <h2>En construcción</h2>
