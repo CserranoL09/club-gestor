@@ -1,5 +1,9 @@
 # Novedades de Club Gestor
 
+## v0.4.1 · 25/11/2026
+
+- Mensajes claros cuando Supabase no puede enviar un email (falta configurar el correo propio).
+
 ## v0.4.0 · 25/11/2026
 
 - Inicio con tarjetas resumen: próximo partido con cuenta atrás, última y próxima sesión, microciclo actual, lesionados, asistencia de las últimas 4 semanas y comentarios del profesor.

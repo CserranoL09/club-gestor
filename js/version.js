@@ -1,7 +1,12 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.4.0';
+export const APP_VERSION = '0.4.1';
 
 export const CHANGELOG = [
+  {
+    version: '0.4.1',
+    date: '25/11/2026',
+    items: ['Mensajes claros cuando Supabase no puede enviar un email (falta configurar el correo propio).']
+  },
   {
     version: '0.4.0',
     date: '25/11/2026',
