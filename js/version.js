@@ -1,7 +1,18 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.4.1';
+export const APP_VERSION = '0.5.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.5.0',
+    date: '25/11/2026',
+    items: [
+      'Nuevos perfiles de club: Dirección, Coordinación, Entrenador principal, 2.º entrenador / delegado, Preparador físico y Entrenador de porteros, con especialidad.',
+      'Cada persona del cuerpo técnico ve solo sus equipos. La Dirección puede abrirlo a todos en Configuración → Club.',
+      'Personas: vista del cuerpo técnico por equipo, aviso de equipos sin entrenador principal e invitación directa a un equipo.',
+      'La Coordinación invita al cuerpo técnico de sus equipos; lo ve todo y lo comenta, pero no edita el trabajo diario.',
+      'Configuración → Club: datos del club (localidad, fundación, contacto, presentación).'
+    ]
+  },
   {
     version: '0.4.1',
     date: '25/11/2026',

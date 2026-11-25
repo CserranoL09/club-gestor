@@ -1,5 +1,14 @@
 # Novedades de Club Gestor
 
+## v0.5.0 · 25/11/2026 · Rediseño para clubes (fase R1)
+
+- Nuevos perfiles de club: Dirección, Coordinación, Entrenador principal, 2.º entrenador / delegado, Preparador físico y Entrenador de porteros, con especialidad.
+- Cada persona del cuerpo técnico ve solo sus equipos. La Dirección puede abrirlo a todos en Configuración → Club.
+- Personas: vista del cuerpo técnico por equipo, aviso de equipos sin entrenador principal e invitación directa a un equipo.
+- La Coordinación invita al cuerpo técnico de sus equipos; lo ve todo y lo comenta, pero no edita el trabajo diario.
+- Configuración → Club: datos del club (localidad, fundación, contacto, presentación).
+- Base de datos: migración `003_perfiles_club.sql`.
+
 ## v0.4.1 · 25/11/2026
 
 - Mensajes claros cuando Supabase no puede enviar un email (falta configurar el correo propio).

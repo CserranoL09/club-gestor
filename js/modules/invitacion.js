@@ -27,11 +27,11 @@ export async function render(el, ctx) {
   }
   const inv = Array.isArray(data) ? data[0] : data;
   if (!inv) {
-    el.innerHTML = `<div class="card empty"><div class="big">✉</div><h2>Esta invitación no existe</h2><p>Revisa que has copiado el enlace completo o pide uno nuevo al administrador del club.</p><a class="btn" href="#/inicio">Ir al inicio</a></div>`;
+    el.innerHTML = `<div class="card empty"><div class="big">✉</div><h2>Esta invitación no existe</h2><p>Revisa que has copiado el enlace completo o pide uno nuevo a tu club.</p><a class="btn" href="#/inicio">Ir al inicio</a></div>`;
     return;
   }
   if (!inv.valid) {
-    el.innerHTML = `<div class="card empty"><div class="big">⌛</div><h2>La invitación ya no es válida</h2><p>Ha caducado, ya se ha usado o se ha anulado. Pide una nueva al administrador de <strong>${esc(inv.club_name)}</strong>.</p><a class="btn" href="#/inicio">Ir al inicio</a></div>`;
+    el.innerHTML = `<div class="card empty"><div class="big">⌛</div><h2>La invitación ya no es válida</h2><p>Ha caducado, ya se ha usado o se ha anulado. Pide una nueva a <strong>${esc(inv.club_name)}</strong>.</p><a class="btn" href="#/inicio">Ir al inicio</a></div>`;
     return;
   }
 

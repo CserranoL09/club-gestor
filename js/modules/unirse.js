@@ -22,7 +22,7 @@ export async function render(el) {
   if (!adminClubs.length) {
     el.innerHTML = `${head}
       <div class="card narrow">
-        ${S.memberships.length ? '<p class="note">Para unir un club a una clase tienes que ser su administrador. Crea tu propio club aquí.</p>' : ''}
+        ${S.memberships.length ? '<p class="note">Para unir un club a una clase tienes que ser de su Dirección. Crea tu propio club aquí.</p>' : ''}
         <form id="codeForm" novalidate>${codeField}</form>
         <h2 class="mt">Tu club</h2>
         ${clubFormHTML({ submitLabel: 'Crear club y unirme a la clase' })}

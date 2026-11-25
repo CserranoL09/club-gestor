@@ -60,7 +60,7 @@ export async function render(el) {
 
   el.querySelectorAll('[data-leave]').forEach((b) => b.addEventListener('click', async () => {
     const m = S.memberships.find((x) => x.club.id === b.dataset.leave);
-    const extra = m.role === 'admin' ? ' Si eres el único administrador, antes tendrás que pasar la administración a otra persona (Configuración → Personas).' : '';
+    const extra = m.role === 'admin' ? ' Si eres la única persona de la Dirección, antes tendrás que pasar la Dirección a otra persona (Configuración → Personas).' : '';
     if (!(await ask(`Dejarás de ver «${m.club.name}». Para volver necesitarás otra invitación.${extra}`, { title: '¿Salir del club?', yes: 'Salir del club', danger: true }))) return;
     await busy(b, async () => {
       const { error } = await sb().rpc('leave_club', { p_club: m.club.id });

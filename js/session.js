@@ -3,12 +3,25 @@
 import { getClient, isConfigured } from './supabase.js';
 import { getCtx, setCtx, clearCtx } from './store.js';
 
+// Perfiles del club. Los valores internos no cambian (admin = Dirección) para no tocar datos guardados.
 export const ROLE_LABEL = {
-  admin: 'Administrador',
-  entrenador: 'Entrenador',
+  admin: 'Dirección',
+  coordinador: 'Coordinación',
+  entrenador: 'Entrenador principal',
+  ayudante: '2.º entrenador / delegado',
   preparador: 'Preparador físico',
   porteros: 'Entrenador de porteros'
 };
+export const ROLE_HELP = {
+  admin: 'Dirige el club: configuración, personas, temporadas, equipos y todo el trabajo de los equipos.',
+  coordinador: 'Supervisa sus equipos: lo ve todo, comenta e invita a su cuerpo técnico. No edita el trabajo diario.',
+  entrenador: 'Lleva su equipo: plantilla, sesiones, planificación y partidos.',
+  ayudante: 'Ayuda en su equipo: sesiones, asistencia, planificación y acta de los partidos.',
+  preparador: 'Parte condicional de sus equipos: sesiones, macrociclos y morfociclos.',
+  porteros: 'Porteros de sus equipos: sesiones, macrociclos y morfociclos.'
+};
+/** Especialidades que se sugieren para el cuerpo técnico (texto libre). */
+export const SPECIALTIES = ['2.º entrenador', 'Delegado', 'Preparador físico', 'Entrenador de porteros', 'Readaptador', 'Analista', 'Fisioterapeuta', 'Coordinador de fútbol base'];
 export const ROLES = Object.keys(ROLE_LABEL);
 
 export const S = {
@@ -168,13 +181,25 @@ export async function reloadClubData() {
 }
 
 function pickTeam(wantedId) {
-  const list = teamsOfSeason();
+  const list = visibleTeams();
   const mine = list.filter((t) => isMyTeam(t.id));
   S.team = list.find((t) => t.id === wantedId) || mine[0] || list[0] || null;
 }
 
+/** Equipos de la temporada activa (todos los del club, aunque no pueda ver sus datos). */
 export function teamsOfSeason() {
   return S.season ? S.teams.filter((t) => t.season_id === S.season.id) : [];
+}
+
+/** Equipos de la temporada cuyos datos puede ver el usuario: primero los suyos. */
+export function visibleTeams() {
+  const list = teamsOfSeason().filter((t) => canReadTeam(t.id));
+  return [...list.filter((t) => isMyTeam(t.id)), ...list.filter((t) => !isMyTeam(t.id))];
+}
+
+/** Equipos asignados al usuario en la temporada activa. */
+export function myTeams() {
+  return teamsOfSeason().filter((t) => isMyTeam(t.id));
 }
 
 export function selectSeason(seasonId) {
@@ -227,34 +252,50 @@ export function takePendingInvite() {
 // Permisos (para la interfaz)
 // ---------------------------------------------------------------------
 export function isAdmin() { return S.member?.role === 'admin'; }
+export const isDirector = isAdmin;
+export function isCoordinator() { return S.member?.role === 'coordinador'; }
 export function isTeacher() { return !!S.profile?.is_teacher; }
+export function clubSettings() { return { coaches_see_all: false, teaching_mode: false, ...(S.club?.settings || {}) }; }
 
 function hasTeam(teamId, roles) {
   const m = S.member;
   if (!m || !teamId || !roles.includes(m.role)) return false;
   return !m.team_ids?.length || m.team_ids.includes(teamId);
 }
-export function isMyTeam(teamId) { return isAdmin() || hasTeam(teamId, ['entrenador', 'preparador', 'porteros']); }
+const STAFF = ['entrenador', 'ayudante', 'preparador', 'porteros'];
+
+/** Equipo asignado (o de todos, si es Dirección o no tiene equipos concretos). */
+export function isMyTeam(teamId) { return isAdmin() || hasTeam(teamId, ['coordinador', ...STAFF]); }
+export function canReadTeam(teamId) { return isMyTeam(teamId) || (!!S.member && clubSettings().coaches_see_all); }
+export function canSupervise(teamId = S.team?.id) { return isAdmin() || hasTeam(teamId, ['coordinador']); }
 export function canEditTeam(teamId = S.team?.id) { return isAdmin() || hasTeam(teamId, ['entrenador']); }
-export function canPlanTeam(teamId = S.team?.id) { return canEditTeam(teamId) || hasTeam(teamId, ['preparador', 'porteros']); }
+export function canPlanTeam(teamId = S.team?.id) { return canEditTeam(teamId) || hasTeam(teamId, ['preparador', 'porteros', 'ayudante']); }
+export function canMatchTeam(teamId = S.team?.id) { return canEditTeam(teamId) || hasTeam(teamId, ['ayudante']); }
+/** ¿Puede invitar? Dirección a cualquiera; Coordinación al cuerpo técnico de sus equipos. */
+export function canInvite() { return isAdmin() || isCoordinator(); }
 
 /** ¿Puede el usuario hacer esto? Devuelve { ok, reason } para explicarlo en la interfaz. */
 export function permission(kind) {
   if (!isConfigured) return { ok: true, reason: '' };
   if (!S.member) return { ok: false, reason: 'Todavía no perteneces a ningún club.' };
   const team = S.team?.name ? ` (${S.team.name})` : '';
+  const no = (reason) => ({ ok: false, reason });
+  const yes = { ok: true, reason: '' };
   switch (kind) {
     case 'admin':
-      return isAdmin() ? { ok: true, reason: '' }
-        : { ok: false, reason: 'Solo el administrador del club puede cambiar esto.' };
+      return isAdmin() ? yes : no('Solo la Dirección del club puede cambiar esto.');
     case 'edit':
-      return canEditTeam() ? { ok: true, reason: '' }
-        : { ok: false, reason: `Solo el administrador o el entrenador de este equipo${team} pueden editar esto.` };
+      return canEditTeam() ? yes : no(isCoordinator()
+        ? `Como Coordinación puedes verlo y comentarlo, pero lo edita el entrenador del equipo${team}.`
+        : `Solo la Dirección o el entrenador principal de este equipo${team} pueden editar esto.`);
     case 'plan':
-      return canPlanTeam() ? { ok: true, reason: '' }
-        : { ok: false, reason: `Solo el cuerpo técnico de este equipo${team} puede editar esto.` };
+      return canPlanTeam() ? yes : no(isCoordinator()
+        ? `Como Coordinación puedes verlo y comentarlo, pero lo edita el cuerpo técnico del equipo${team}.`
+        : `Solo el cuerpo técnico de este equipo${team} puede editar esto.`);
+    case 'match':
+      return canMatchTeam() ? yes : no(`Solo el entrenador principal o el 2.º entrenador / delegado de este equipo${team} pueden rellenar esto.`);
     default:
-      return { ok: true, reason: '' };
+      return yes;
   }
 }
 

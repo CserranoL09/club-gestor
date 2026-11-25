@@ -20,7 +20,7 @@ export async function render(el, ctx) {
         <div class="page-head">
           <div>
             <h1>${another ? 'Crear otro club' : 'Crear mi club'}</h1>
-            <p>Crearás el club con su temporada y su primer equipo. Serás su administrador.</p>
+            <p>Crearás el club con su temporada y su primer equipo. Tendrás el perfil de Dirección del club.</p>
           </div>
           ${another ? '<a class="btn" href="#/inicio">Cancelar</a>' : '<button class="btn" type="button" data-back>← Volver</button>'}
         </div>
@@ -40,7 +40,7 @@ export async function render(el, ctx) {
       });
     } else if (step === 'invitacion') {
       el.innerHTML = `
-        <div class="page-head"><div><h1>Tengo una invitación</h1><p>Pega el enlace que te ha enviado el administrador del club.</p></div>
+        <div class="page-head"><div><h1>Tengo una invitación</h1><p>Pega el enlace que te ha enviado la Dirección o la Coordinación de tu club.</p></div>
           <button class="btn" type="button" data-back>← Volver</button></div>
         <div class="card narrow">
           <form novalidate>

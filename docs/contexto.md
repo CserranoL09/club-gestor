@@ -22,13 +22,20 @@ MÓDULOS (un botón por cada uno en la página inicial del club)
 - Postpartido (hoja POSTPARTIDO): informe por jornada, evaluación colectiva e individual y captación.
 - Además: Plantilla de jugadores, Estadísticas de temporada, Configuración del club y Panel del profesor.
 
-USUARIOS Y PERMISOS
+USUARIOS Y PERMISOS (rediseño orientado a clubes, desde la v0.5.0)
 - Cuentas de Supabase Auth (email y contraseña o enlace mágico). Un usuario puede pertenecer a varios clubes.
-- Club > temporadas > equipos. Roles por club en club_members: 'admin' | 'entrenador' | 'preparador' | 'porteros'.
-  · admin: todo en su club (configuración, personas, temporadas, equipos).
-  · entrenador: crea y edita todo en los equipos de su team_ids (vacío = todos los del club).
-  · preparador / porteros: leen todo el club. Editan sesiones, macrociclos y morfociclos de sus equipos (en la ficha de sesión, la interfaz solo les deja editar sus apartados: objetivo condicional, rol del preparador o del entrenador de porteros, y las tareas que creen ellos). No editan partidos, plantilla ni configuración.
-- Profesor (profiles.is_teacher): crea clases con un código de 6 caracteres. Cada alumno se une con el código y su club queda vinculado a esa clase (clubs.class_id). El profesor ve en solo lectura los clubes de sus clases y deja comentarios (tabla comments). Nunca edita los datos del alumno.
+- Club > temporadas > equipos. Perfiles por club en club_members.role (valores internos → nombre en pantalla):
+  · admin → Dirección: todo en el club (configuración, personas, temporadas, equipos y todo el trabajo de los equipos).
+  · coordinador → Coordinación: ve todo de sus equipos (team_ids; vacío = todos), comenta e invita al cuerpo técnico de sus equipos. No edita el trabajo diario ni la configuración.
+  · entrenador → Entrenador principal: edita todo en sus equipos.
+  · ayudante → 2.º entrenador / delegado: planificación de sus equipos (sesiones, asistencia, macro y morfociclo) y acta de los partidos (update de matches); no crea ni borra partidos.
+  · preparador / porteros: planificación de sus equipos (en la ficha de sesión, solo sus apartados).
+  · club_members.specialty: texto libre (2.º entrenador, delegado, readaptador…).
+- Visibilidad: cada miembro LEE solo los datos de sus equipos (can_read_team) salvo Dirección, Coordinación sin equipos concretos, o si clubs.settings.coaches_see_all = true (entonces todos ven todo, pero solo editan lo suyo). La lista de equipos, temporadas y personas del club es visible para todos los miembros.
+- Funciones SQL: is_admin, has_team, can_read_team, can_supervise, can_edit_team, can_plan_team, can_match_team, can_invite, can_comment. En el front: session.js (isDirector, isCoordinator, canReadTeam, canSupervise, canEditTeam, canPlanTeam, canMatchTeam, visibleTeams, myTeams, permission()).
+- Comentarios: comments.team_id (nulo = del club) y comments.to_user. Escriben Dirección, Coordinación de ese equipo, su cuerpo técnico y el profesor.
+- Invitaciones: Dirección invita a cualquier perfil; Coordinación solo al cuerpo técnico de sus equipos (y solo ve las suyas). La invitación lleva perfil, equipos y especialidad.
+- Modo formación (secundario): profesor (profiles.is_teacher) con clases y código de 6 caracteres; ve en solo lectura los clubes de su clase y comenta.
 
 ARQUITECTURA (respétala)
 - Sin build y sin frameworks: módulos ES nativos (<script type="module">). Librerías solo por CDN y con versión fija: @supabase/supabase-js v2 (jsDelivr, +esm) y SheetJS 0.18.5 (cdnjs con respaldo en jsDelivr, cargada solo al exportar o importar Excel). Fuentes de Google Fonts.

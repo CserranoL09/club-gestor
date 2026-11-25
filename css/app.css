@@ -394,3 +394,16 @@ fieldset[disabled] input, fieldset[disabled] select, fieldset[disabled] button {
 .inline-label select { min-width: 0; max-width: 100%; }
 .stack .check.indent { flex-wrap: nowrap; }
 .grid > .card + .card { margin-top: 0; }
+
+/* ===== v0.5.0 · Perfiles de club ===== */
+.cfg-more { margin-top: 14px; }
+textarea { width: 100%; resize: vertical; min-height: 80px; }
+.switch { align-items: flex-start; }
+.switch input { margin-top: 3px; }
+.staff-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+.staff-card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; background: var(--surface-2); }
+.staff-card h3 { margin: 0; font-size: 1.15rem; }
+.staff-card .btn { margin-top: auto; align-self: flex-start; }
+.staff-card.warn-card { border-color: color-mix(in srgb, var(--warn) 50%, var(--line)); }
+.role-edit input { width: 100%; }
+optgroup { font-style: normal; color: var(--ink-2); }

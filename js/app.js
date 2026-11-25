@@ -4,7 +4,7 @@ import { isConfigured, checkConnection } from './supabase.js';
 import { esc, toast, errMsg } from './ui.js';
 import { startRouter, rerender } from './router.js';
 import {
-  S, initAuth, onChange, signOut, selectClub, selectSeason, selectTeam, teamsOfSeason,
+  S, initAuth, onChange, signOut, selectClub, selectSeason, selectTeam, visibleTeams, isMyTeam,
   roleLabel, isTeacher, takePendingInvite
 } from './session.js';
 
@@ -92,10 +92,14 @@ function renderHeader() {
     ? S.seasons.map((s) => `<option value="${esc(s.id)}"${s.id === S.season?.id ? ' selected' : ''}>${esc(s.name)}</option>`).join('')
     : '<option>Temporada</option>';
   seasonSel.disabled = S.seasons.length < 2;
-  const teams = teamsOfSeason();
-  teamSel.innerHTML = teams.length
-    ? teams.map((t) => `<option value="${esc(t.id)}"${t.id === S.team?.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('')
-    : '<option>Sin equipos</option>';
+  const teams = visibleTeams();
+  const mine = teams.filter((t) => isMyTeam(t.id));
+  const others = teams.filter((t) => !isMyTeam(t.id));
+  const opt = (t) => `<option value="${esc(t.id)}"${t.id === S.team?.id ? ' selected' : ''}>${esc(t.name)}</option>`;
+  teamSel.innerHTML = !teams.length ? '<option>Sin equipos</option>'
+    : mine.length && others.length
+      ? `<optgroup label="Mis equipos">${mine.map(opt).join('')}</optgroup><optgroup label="Otros equipos del club">${others.map(opt).join('')}</optgroup>`
+      : teams.map(opt).join('');
   teamSel.disabled = teams.length < 2;
   $('ctxBar').hidden = !S.club;
 

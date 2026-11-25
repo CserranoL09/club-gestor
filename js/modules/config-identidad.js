@@ -1,7 +1,7 @@
 // Configuración → Identidad: nombre, escudo, colores, tema y tipografía (con vista previa y guardado automático).
 import { esc, toast, busy, ask, squareImage } from '../ui.js';
 import { sb } from '../supabase.js';
-import { S, patchClub, refreshCrest } from '../session.js';
+import { S, patchClub, refreshCrest, clubSettings } from '../session.js';
 import { autosaver } from '../store.js';
 
 const PRESETS = [
@@ -88,6 +88,38 @@ export async function render(el, { canEdit }) {
       </section>
     </div>
 
+    <div class="grid two cfg-more">
+      <section class="card">
+        <fieldset class="plain" ${canEdit ? '' : 'disabled'}>
+          <h2>Datos del club</h2>
+          <div class="row">
+            <div class="grow"><label for="cd_city">Localidad</label><input id="cd_city" data-club="city" value="${esc(club.city || '')}" maxlength="80"></div>
+            <div><label for="cd_year">Año de fundación</label><input id="cd_year" data-club="founded_year" type="number" min="1850" max="2100" value="${esc(club.founded_year ?? '')}"></div>
+          </div>
+          <label for="cd_address">Dirección / instalación principal</label>
+          <input id="cd_address" data-club="address" value="${esc(club.address || '')}" maxlength="160">
+          <div class="row">
+            <div class="grow"><label for="cd_email">Email de contacto</label><input id="cd_email" data-club="email" type="email" value="${esc(club.email || '')}" maxlength="120"></div>
+            <div><label for="cd_phone">Teléfono</label><input id="cd_phone" data-club="phone" type="tel" value="${esc(club.phone || '')}" maxlength="30"></div>
+          </div>
+          <label for="cd_web">Web o redes</label>
+          <input id="cd_web" data-club="website" value="${esc(club.website || '')}" maxlength="160" placeholder="https://…">
+          <label for="cd_desc">Presentación del club</label>
+          <textarea id="cd_desc" data-club="description" rows="3" maxlength="1000" placeholder="Historia, filosofía, categorías…">${esc(club.description || '')}</textarea>
+        </fieldset>
+      </section>
+      <section class="card">
+        <fieldset class="plain" ${canEdit ? '' : 'disabled'}>
+          <h2>Acceso de los entrenadores</h2>
+          <label class="check switch">
+            <input type="checkbox" id="set_see_all"${clubSettings().coaches_see_all ? ' checked' : ''}>
+            <span><strong>Los entrenadores pueden ver los demás equipos</strong><br>
+            <small class="muted">Desactivado: cada persona del cuerpo técnico solo ve los equipos que tiene asignados. Activado: ven el trabajo de todos los equipos del club (sin poder editarlo). La Dirección y la Coordinación siempre ven sus equipos.</small></span>
+          </label>
+        </fieldset>
+      </section>
+    </div>
+
     <section class="card preview-card" aria-label="Vista previa">
       <h2>Vista previa</h2>
       <div class="preview">
@@ -146,6 +178,30 @@ export async function render(el, { canEdit }) {
   // Tema y tipografía
   el.querySelectorAll('[name=theme]').forEach((r) => r.addEventListener('change', () => { patchClub({ theme: r.value }); saver.set({ theme: r.value }); }));
   el.querySelectorAll('[name=font]').forEach((r) => r.addEventListener('change', () => { patchClub({ font: r.value }); saver.set({ font: r.value }); }));
+
+  // Datos del club
+  el.querySelectorAll('[data-club]').forEach((inp) => inp.addEventListener('input', () => {
+    const field = inp.dataset.club;
+    let value = inp.value.trim();
+    if (field === 'founded_year') {
+      if (value === '') value = null;
+      else {
+        value = parseInt(value, 10);
+        if (!(value >= 1850 && value <= 2100)) { inp.setAttribute('aria-invalid', 'true'); return; }
+      }
+    }
+    if (field === 'email' && value && !/^\S+@\S+\.\S+$/.test(value)) { inp.setAttribute('aria-invalid', 'true'); return; }
+    inp.removeAttribute('aria-invalid');
+    club[field] = value;
+    saver.set({ [field]: value });
+  }));
+
+  // Acceso de los entrenadores
+  $('#set_see_all').addEventListener('change', (ev) => {
+    const settings = { ...clubSettings(), coaches_see_all: ev.target.checked };
+    patchClub({ settings });
+    saver.set({ settings });
+  });
 
   // Escudo
   $('#id_crest').addEventListener('change', async (ev) => {

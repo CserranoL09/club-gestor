@@ -30,13 +30,13 @@ export async function render(el) {
     <div class="page-head">
       <div>
         <h1>${esc(S.club.name)}</h1>
-        <p>Hola${first ? ', ' + esc(first) : ''}. Eres <strong>${esc(roleLabel())}</strong>${S.team ? ` · equipo <strong>${esc(S.team.name)}</strong>` : ''}.</p>
+        <p>Hola${first ? ', ' + esc(first) : ''}. Tu perfil: <strong>${esc(roleLabel())}</strong>${S.team ? ` · equipo <strong>${esc(S.team.name)}</strong>` : ''}.</p>
       </div>
     </div>
-    ${!S.team ? `<p class="note">Este club aún no tiene equipos en esta temporada. ${permission('admin').ok ? '<a href="#/config?tab=temporadas">Crea uno en Configuración</a>.' : 'El administrador puede crearlos en Configuración.'}</p>` : ''}
+    ${!S.team ? `<p class="note">Este club aún no tiene equipos en esta temporada. ${permission('admin').ok ? '<a href="#/config?tab=temporadas">Crea uno en Configuración</a>.' : 'La Dirección del club puede crearlos en Configuración.'}</p>` : ''}
     ${layout.widgets.length && S.team ? `<section class="widgets grid" aria-label="Resumen" id="widgets">${layout.widgets.map((k) => skeleton(k)).join('')}</section>` : ''}
     <nav class="modules" aria-label="Módulos" id="modules">${modules.map((m) => moduleTile(m, m.route)).join('')}</nav>
-    ${!modules.length ? '<p class="hint">El administrador ha ocultado todos los botones. Puedes volver a mostrarlos en Configuración → Página inicial.</p>' : ''}`;
+    ${!modules.length ? '<p class="hint">La Dirección del club ha ocultado todos los botones. Puedes volver a mostrarlos en Configuración → Página inicial.</p>' : ''}`;
 
   if (!S.team) return;
   const data = await loadData(layout);
