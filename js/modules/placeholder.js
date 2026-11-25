@@ -3,9 +3,10 @@ import { esc, permNote } from '../ui.js';
 import { permission } from '../session.js';
 
 export async function render(el, ctx) {
-  const m = ctx.module || {};
+  const m = ctx.module || { icon: ctx.route?.icon, desc: ctx.route?.desc };
   const title = ctx.route?.title || m.name || 'Módulo';
   const prompt = m.prompt || ctx.route?.prompt;
+  const phase = ctx.route?.phase;
   const perm = permission(m.perm);
   el.innerHTML = `
     <div class="page-head">
@@ -21,7 +22,7 @@ export async function render(el, ctx) {
       <h2>En construcción</h2>
       <p>
         ${m.sheet ? `Este módulo reproducirá la hoja <strong>${esc(m.sheet)}</strong> del Excel. ` : ''}
-        ${prompt ? `Se construye con el <strong>Prompt ${esc(prompt)}</strong> de la biblioteca de prompts.` : ''}
+        ${phase ? `Llega con la fase <strong>${esc(phase)}</strong> del rediseño para clubes.` : prompt ? `Se construye con el <strong>Prompt ${esc(prompt)}</strong> de la biblioteca de prompts.` : ''}
       </p>
     </div>`;
 }

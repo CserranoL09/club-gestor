@@ -1,7 +1,19 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.5.0';
+export const APP_VERSION = '0.6.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.6.0',
+    date: '26/11/2026',
+    items: [
+      'Nueva navegación: barra lateral en el ordenador y barra inferior con «Más» en el móvil.',
+      'Dirección y Coordinación entran en el Panel del club; los entrenadores, directamente en «Mi equipo».',
+      'Alta del club en 4 pasos: datos y escudo, temporada, equipos (con categorías típicas) y cuerpo técnico con un enlace de invitación por persona.',
+      'Página Equipos con el cuerpo técnico de cada uno y botón «Entrar al equipo»; franja «Viendo equipo · volver al club».',
+      'Quien acepta una invitación entra directamente en su equipo.',
+      'Bienvenida con tres caminos (club, invitación, por mi cuenta) y modo formación para profesores y alumnos.'
+    ]
+  },
   {
     version: '0.5.0',
     date: '25/11/2026',

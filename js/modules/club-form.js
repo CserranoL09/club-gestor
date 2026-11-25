@@ -76,7 +76,7 @@ export function wireClubForm(form) {
 }
 
 /** Valida, crea el club con create_club y sube el escudo. Devuelve el id del club o null. */
-export async function createClubFromForm(form) {
+export async function createClubFromForm(form, { mode = 'club' } = {}) {
   const v = formValues(form);
   if (!v.name) { toast('Escribe el nombre del club.', 'err'); return null; }
   if (!v.team_name) { toast('Escribe el nombre del primer equipo.', 'err'); return null; }
@@ -96,6 +96,12 @@ export async function createClubFromForm(form) {
     p_period_minutes: parseInt(v.period_minutes, 10) || 45
   });
   if (error) throw error;
+
+  // Club personal (un entrenador por su cuenta) o club con Dirección.
+  if (mode !== 'club') {
+    const { error: e } = await client.from('clubs').update({ settings: { mode } }).eq('id', clubId);
+    if (e) console.error(e);
+  }
 
   const file = form.querySelector('[name=crest]').files[0];
   if (file) {

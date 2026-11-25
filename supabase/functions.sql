@@ -243,12 +243,16 @@ begin
 end;
 $$;
 
--- Ver una invitación antes de aceptarla (solo con el token).
-create or replace function public.get_invitation(p_token text)
-returns table (club_name text, role text, expires_at timestamptz, valid boolean)
+-- Ver una invitación antes de aceptarla (solo con el token). Igual que en la migración 004.
+drop function if exists public.get_invitation(text);
+create function public.get_invitation(p_token text)
+returns table (club_name text, role text, expires_at timestamptz, valid boolean,
+               specialty text, team_ids uuid[], team_names text)
 language sql stable security definer set search_path = public as $$
   select c.name, i.role, i.expires_at,
-         (not i.revoked and i.accepted_at is null and i.expires_at > now())
+         (not i.revoked and i.accepted_at is null and i.expires_at > now()),
+         '' :: text, i.team_ids,
+         (select string_agg(t.name, ', ' order by t.name) from teams t where t.id = any (i.team_ids))
   from invitations i join clubs c on c.id = i.club_id
   where i.token = p_token;
 $$;

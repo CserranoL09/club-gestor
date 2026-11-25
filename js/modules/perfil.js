@@ -1,7 +1,7 @@
 // Mi perfil: nombre, profesor, contraseña y clubes a los que pertenezco.
 import { esc, toast, busy, ask, formValues } from '../ui.js';
 import { sb } from '../supabase.js';
-import { S, refresh, roleLabel, selectClub } from '../session.js';
+import { S, refresh, roleLabel, selectClub, homePath } from '../session.js';
 
 export async function render(el) {
   const p = S.profile || {};
@@ -55,7 +55,7 @@ export async function render(el) {
 
   el.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => busy(b, async () => {
     await selectClub(b.dataset.open);
-    location.hash = '#/inicio';
+    location.hash = '#' + homePath();
   })));
 
   el.querySelectorAll('[data-leave]').forEach((b) => b.addEventListener('click', async () => {

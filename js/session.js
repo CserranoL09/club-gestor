@@ -220,8 +220,8 @@ function saveCtx() {
 }
 
 /** Volver a leer todo (después de crear un club, aceptar una invitación, etc.). */
-export async function refresh(clubId) {
-  if (clubId) setCtx({ clubId, seasonId: null, teamId: null });
+export async function refresh(clubId, teamId = null) {
+  if (clubId) setCtx({ clubId, seasonId: null, teamId });
   await loadUserData();
   emit();
 }
@@ -255,7 +255,17 @@ export function isAdmin() { return S.member?.role === 'admin'; }
 export const isDirector = isAdmin;
 export function isCoordinator() { return S.member?.role === 'coordinador'; }
 export function isTeacher() { return !!S.profile?.is_teacher; }
-export function clubSettings() { return { coaches_see_all: false, teaching_mode: false, ...(S.club?.settings || {}) }; }
+export function clubSettings() { return { coaches_see_all: false, teaching_mode: false, mode: 'club', ...(S.club?.settings || {}) }; }
+/** Club «personal» (un entrenador que trabaja por su cuenta) o club con Dirección. */
+export function isPersonalClub() { return clubSettings().mode === 'personal'; }
+/** Ve la parte de club (panel, equipos, personas): Dirección y Coordinación de un club. */
+export function isClubManager() { return !!S.member && !isPersonalClub() && (S.member.role === 'admin' || S.member.role === 'coordinador'); }
+/** Página de entrada según el perfil. */
+export function homePath() {
+  if (!S.user) return '/login';
+  if (!S.memberships.length) return '/bienvenida';
+  return isClubManager() ? '/club' : '/inicio';
+}
 
 function hasTeam(teamId, roles) {
   const m = S.member;

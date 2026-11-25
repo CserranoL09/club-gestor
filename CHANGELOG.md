@@ -1,5 +1,15 @@
 # Novedades de Club Gestor
 
+## v0.6.0 · 26/11/2026 · Rediseño para clubes (fase R2)
+
+- Nueva navegación: barra lateral en el ordenador y barra inferior con «Más» en el móvil.
+- Dirección y Coordinación entran en el Panel del club; los entrenadores, directamente en «Mi equipo».
+- Alta del club en 4 pasos: datos y escudo, temporada, equipos (con categorías típicas) y cuerpo técnico con un enlace de invitación por persona.
+- Página Equipos con el cuerpo técnico de cada uno y botón «Entrar al equipo»; franja «Viendo equipo · volver al club».
+- Quien acepta una invitación entra directamente en su equipo.
+- Bienvenida con tres caminos (club, invitación, por mi cuenta) y modo formación para profesores y alumnos.
+- Base de datos: migración `004_equipos_invitaciones.sql`.
+
 ## v0.5.0 · 25/11/2026 · Rediseño para clubes (fase R1)
 
 - Nuevos perfiles de club: Dirección, Coordinación, Entrenador principal, 2.º entrenador / delegado, Preparador físico y Entrenador de porteros, con especialidad.

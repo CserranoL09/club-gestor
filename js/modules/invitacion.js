@@ -1,7 +1,7 @@
 // Abrir un enlace de invitación (#/invitacion/:token) y aceptarlo.
 import { esc, toast, busy, errMsg } from '../ui.js';
 import { sb } from '../supabase.js';
-import { S, refresh, setPendingInvite, roleLabel } from '../session.js';
+import { S, refresh, setPendingInvite, roleLabel, homePath } from '../session.js';
 import { fmt } from '../lib/dates.js';
 
 export async function render(el, ctx) {
@@ -38,7 +38,7 @@ export async function render(el, ctx) {
   el.innerHTML = `
     <div class="auth card">
       <h1>Unirte a ${esc(inv.club_name)}</h1>
-      <p>Te han invitado como <strong>${esc(roleLabel(inv.role))}</strong>.</p>
+      <p>Te han invitado como <strong>${esc(roleLabel(inv.role))}</strong>${inv.specialty ? ` (${esc(inv.specialty)})` : ''}${inv.team_names ? ` del equipo <strong>${esc(inv.team_names)}</strong>` : ''}.</p>
       <p class="hint">Entrarás con tu cuenta ${esc(S.user.email)}. La invitación caduca el ${esc(fmt(inv.expires_at))}.</p>
       <button class="btn primary" type="button" data-accept>Aceptar la invitación</button>
       <a class="btn" href="#/inicio">Ahora no</a>
@@ -46,8 +46,9 @@ export async function render(el, ctx) {
   el.querySelector('[data-accept]').addEventListener('click', (ev) => busy(ev.currentTarget, async () => {
     const res = await sb().rpc('accept_invitation', { p_token: token });
     if (res.error) throw res.error;
-    await refresh(res.data);
-    toast(`Ya formas parte de ${inv.club_name}.`);
-    location.hash = '#/inicio';
+    // Entra directamente en el equipo de la invitación.
+    await refresh(res.data, inv.team_ids?.[0] || null);
+    toast(`Ya formas parte de ${inv.club_name}${inv.team_names ? ' · ' + inv.team_names : ''}.`);
+    location.hash = '#' + homePath();
   }));
 }

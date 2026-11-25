@@ -20,7 +20,7 @@ declare
   u_y   uuid := gen_random_uuid();   -- 2.º entrenador / delegado del equipo A1
   c_a uuid; c_b uuid; s_a uuid; t_a1 uuid; t_a2 uuid; t_b uuid;
   cls uuid; code text; tok text; tok_p text; cmt uuid; ses uuid;
-  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text;
+  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text;
   names text[] := '{}'; oks boolean[] := '{}';
 begin
   -- Usuarios de prueba (como si se hubieran registrado)
@@ -304,6 +304,31 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', u_t, 'role', 'authenticated')::text, true);
   select count(*) into cnt from public.comments where club_id = c_a and team_id = t_a1;
   names := names || 'Profesor: ve los comentarios de todos los equipos'::text; oks := oks || (cnt = 2);
+
+  -- ---------- Alta rápida de equipos e invitaciones por equipo (v0.6.0) ----------
+  perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
+  t_new := public.create_team(c_a, s_a, 'Alevín C', 'Alevín', 'f7');
+  select count(*) into cnt from public.teams where id = t_new and squad_max = 14 and period_minutes = 35;
+  names := names || 'Crear equipo F7: valores de su modalidad'::text; oks := oks || (cnt = 1);
+  select count(*) into cnt from public.morphocycles where team_id = t_new and is_default;
+  names := names || 'Crear equipo: con morfociclo estándar'::text; oks := oks || (cnt = 1);
+  insert into public.invitations (club_id, role, team_ids, specialty) values (c_a, 'entrenador', array[t_new], 'UEFA B') returning token into tok_t;
+  perform set_config('request.jwt.claims', json_build_object('sub', u_e, 'role', 'authenticated')::text, true);
+  select team_names into ok_name_dummy from public.get_invitation(tok_t);
+  names := names || 'La invitación muestra su equipo'::text; oks := oks || (ok_name_dummy = 'Alevín C');
+  begin
+    perform public.create_team(c_a, s_a, 'Equipo pirata', '', 'f11');
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Un entrenador no puede crear equipos'::text; oks := oks || ok_;
+  begin
+    perform set_config('request.jwt.claims', json_build_object('sub', u_b, 'role', 'authenticated')::text, true);
+    perform public.create_team(c_a, s_a, 'Equipo pirata', '', 'f11');
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Otro club no puede crear equipos en el tuyo'::text; oks := oks || ok_;
 
   -- ---------- Sin sesión ----------
   execute 'reset role';

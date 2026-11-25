@@ -37,6 +37,13 @@ USUARIOS Y PERMISOS (rediseño orientado a clubes, desde la v0.5.0)
 - Invitaciones: Dirección invita a cualquier perfil; Coordinación solo al cuerpo técnico de sus equipos (y solo ve las suyas). La invitación lleva perfil, equipos y especialidad.
 - Modo formación (secundario): profesor (profiles.is_teacher) con clases y código de 6 caracteres; ve en solo lectura los clubes de su clase y comenta.
 
+NAVEGACIÓN Y PRIMERA EXPERIENCIA (desde la v0.6.0)
+- Bienvenida «¿Cómo vas a usar Club Gestor?» (#/bienvenida?paso=…): club (asistente en 4 pasos: club → temporada → equipos → cuerpo técnico, con borrador en sessionStorage), invitacion, personal (club de un solo entrenador, clubs.settings.mode = 'personal') y formacion (alumno → #/unirse; profesor → profiles.is_teacher).
+- Rutas por área (router.js): 'account', 'club' (#/club, #/equipos, #/calendario, #/metodologia, #/config) y 'team' (#/inicio = «Mi equipo», #/sesiones, #/planificacion, #/partidos, #/plantilla, #/estadisticas…). #/club y #/equipos solo para Dirección y Coordinación (isClubManager()).
+- Entrada: homePath() → Dirección y Coordinación de un club a #/club; resto a #/inicio. Al aceptar una invitación se entra en su equipo.
+- nav.js: barra lateral (grupo Club + grupo del equipo activo), barra inferior en móvil (4 accesos + «Más») y franja «Viendo <equipo> · volver al club» para Dirección y Coordinación en páginas de equipo.
+- RPC create_team(club, season, name, category, modality…) crea el equipo con su morfociclo estándar.
+
 ARQUITECTURA (respétala)
 - Sin build y sin frameworks: módulos ES nativos (<script type="module">). Librerías solo por CDN y con versión fija: @supabase/supabase-js v2 (jsDelivr, +esm) y SheetJS 0.18.5 (cdnjs con respaldo en jsDelivr, cargada solo al exportar o importar Excel). Fuentes de Google Fonts.
 - Archivos:

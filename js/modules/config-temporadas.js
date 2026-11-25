@@ -268,14 +268,14 @@ export async function render(el, { canEdit }, pickSeasonId) {
       const v = formValues(nt);
       if (!v.name) { toast('Escribe el nombre del equipo.', 'err'); return; }
       await busy(nt.querySelector('[type=submit]'), async () => {
-        const { data, error: e } = await client.from('teams').insert({
-          club_id: clubId, season_id: shownSeason.id, name: v.name, category: v.category || '', modality: v.modality,
-          periods: parseInt(v.periods, 10) || 2, period_minutes: parseInt(v.period_minutes, 10) || MINUTES[v.modality],
-          squad_max: parseInt(v.squad_max, 10) || SQUAD[v.modality]
-        }).select('id').single();
+        const { data, error: e } = await client.rpc('create_team', {
+          p_club: clubId, p_season: shownSeason.id, p_name: v.name, p_category: v.category || '', p_modality: v.modality,
+          p_periods: parseInt(v.periods, 10) || 2, p_period_minutes: parseInt(v.period_minutes, 10) || MINUTES[v.modality],
+          p_squad_max: parseInt(v.squad_max, 10) || SQUAD[v.modality]
+        });
         if (e) throw e;
         toast(`Equipo ${v.name} creado.`);
-        if (shownSeason.id === S.season?.id) setCtx({ teamId: data.id });
+        if (shownSeason.id === S.season?.id) setCtx({ teamId: data });
         await reloadClubData();
       });
     });

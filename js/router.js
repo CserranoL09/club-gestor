@@ -2,29 +2,37 @@
 import { MODULES } from './modules/list.js';
 import { flushAll } from './store.js';
 
+// area: 'account' (cuenta), 'club' (Dirección y Coordinación) o 'team' (trabajo de un equipo).
 const ROUTES = [
-  { path: '/login', load: () => import('./modules/login.js'), public: true },
-  { path: '/nueva-clave', load: () => import('./modules/login.js'), public: true },
-  { path: '/bienvenida', load: () => import('./modules/bienvenida.js'), noClub: true },
-  { path: '/perfil', load: () => import('./modules/perfil.js'), noClub: true },
-  { path: '/invitacion/:token', load: () => import('./modules/invitacion.js'), public: true, noClub: true },
-  { path: '/unirse', load: () => import('./modules/unirse.js'), noClub: true },
-  { path: '/inicio', load: () => import('./modules/inicio.js') },
-  { path: '/config', load: () => import('./modules/config.js'), key: 'config' },
-  { path: '/plantilla', key: 'plantilla' },
-  { path: '/sesiones', key: 'sesiones' },
-  { path: '/sesiones/:id', key: 'sesiones' },
-  { path: '/periodizacion', key: 'periodizacion' },
-  { path: '/macrociclo', key: 'macrociclo' },
-  { path: '/macrociclo/:id', key: 'macrociclo' },
-  { path: '/morfociclo', key: 'morfociclo' },
-  { path: '/partidos', key: 'prepartido', title: 'Partidos' },
-  { path: '/partidos/:id/prepartido', key: 'prepartido' },
-  { path: '/partidos/:id/acta', key: 'partido' },
-  { path: '/partidos/:id/postpartido', key: 'postpartido' },
-  { path: '/estadisticas', key: 'estadisticas' },
-  { path: '/jugador/:id', key: 'estadisticas', title: 'Ficha del jugador' },
-  { path: '/profesor', title: 'Panel del profesor', prompt: 17, noClub: true }
+  { path: '/login', load: () => import('./modules/login.js'), public: true, area: 'account' },
+  { path: '/nueva-clave', load: () => import('./modules/login.js'), public: true, area: 'account' },
+  { path: '/bienvenida', load: () => import('./modules/bienvenida.js'), noClub: true, area: 'account' },
+  { path: '/perfil', load: () => import('./modules/perfil.js'), noClub: true, area: 'account' },
+  { path: '/invitacion/:token', load: () => import('./modules/invitacion.js'), public: true, noClub: true, area: 'account' },
+  { path: '/unirse', load: () => import('./modules/unirse.js'), noClub: true, area: 'account' },
+  { path: '/profesor', title: 'Panel del profesor', prompt: 17, noClub: true, area: 'account' },
+
+  { path: '/club', load: () => import('./modules/club.js'), area: 'club', managers: true },
+  { path: '/equipos', load: () => import('./modules/equipos.js'), area: 'club', managers: true },
+  { path: '/calendario', title: 'Calendario del club', icon: '📅', phase: 'R5', desc: 'Sesiones y partidos de todos los equipos, instalaciones y reservas de campo.', area: 'club' },
+  { path: '/metodologia', title: 'Metodología del club', icon: '📘', phase: 'R4', desc: 'Modelo de juego, objetivos por categoría, tareas oficiales y plantillas del club.', area: 'club' },
+  { path: '/config', load: () => import('./modules/config.js'), key: 'config', area: 'club' },
+
+  { path: '/inicio', load: () => import('./modules/inicio.js'), area: 'team' },
+  { path: '/plantilla', key: 'plantilla', area: 'team' },
+  { path: '/sesiones', key: 'sesiones', area: 'team' },
+  { path: '/sesiones/:id', key: 'sesiones', area: 'team' },
+  { path: '/planificacion', load: () => import('./modules/planificacion.js'), area: 'team' },
+  { path: '/periodizacion', key: 'periodizacion', area: 'team' },
+  { path: '/macrociclo', key: 'macrociclo', area: 'team' },
+  { path: '/macrociclo/:id', key: 'macrociclo', area: 'team' },
+  { path: '/morfociclo', key: 'morfociclo', area: 'team' },
+  { path: '/partidos', key: 'prepartido', title: 'Partidos', area: 'team' },
+  { path: '/partidos/:id/prepartido', key: 'prepartido', area: 'team' },
+  { path: '/partidos/:id/acta', key: 'partido', area: 'team' },
+  { path: '/partidos/:id/postpartido', key: 'postpartido', area: 'team' },
+  { path: '/estadisticas', key: 'estadisticas', area: 'team' },
+  { path: '/jugador/:id', key: 'estadisticas', title: 'Ficha del jugador', area: 'team' }
 ];
 
 function match(hash) {
@@ -69,6 +77,7 @@ export function startRouter(main, { guard = () => null } = {}) {
       const view = await loader();
       if (mine !== seq) return;              // se ha cambiado de página mientras cargaba
       main.innerHTML = '';
+      window.dispatchEvent(new CustomEvent('clubgestor:route', { detail: { path, query, route } }));
       await view.render(main, { params, query, path, module: mod, route });
     } catch (err) {
       console.error(err);

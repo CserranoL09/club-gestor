@@ -3,9 +3,10 @@ import { APP_VERSION, CHANGELOG } from './version.js';
 import { isConfigured, checkConnection } from './supabase.js';
 import { esc, toast, errMsg } from './ui.js';
 import { startRouter, rerender } from './router.js';
+import { initNav, renderNav } from './nav.js';
 import {
   S, initAuth, onChange, signOut, selectClub, selectSeason, selectTeam, visibleTeams, isMyTeam,
-  roleLabel, isTeacher, takePendingInvite
+  roleLabel, isTeacher, takePendingInvite, homePath, isClubManager
 } from './session.js';
 
 const $ = (id) => document.getElementById(id);
@@ -148,7 +149,7 @@ menu.addEventListener('click', async (ev) => {
   if (!el) return;
   closeMenu();
   if (el.dataset.club && el.dataset.club !== S.club?.id) {
-    try { await selectClub(el.dataset.club); location.hash = '#/inicio'; } catch (err) { toast(errMsg(err), 'err'); }
+    try { await selectClub(el.dataset.club); location.hash = '#' + homePath(); } catch (err) { toast(errMsg(err), 'err'); }
   }
   if (el.dataset.action === 'logout') {
     await signOut();
@@ -192,8 +193,9 @@ function guard(route, path) {
   if (!isConfigured) return null;                         // modo de prueba: todo abierto
   if (S.recovery && S.user) return path === '/nueva-clave' ? null : '/nueva-clave';
   if (!S.user) return route.public ? null : '/login';
-  if (path === '/login') return S.memberships.length ? '/inicio' : '/bienvenida';
+  if (path === '/login') return homePath();
   if (!S.memberships.length && !route.noClub) return '/bienvenida';
+  if (route.managers && !isClubManager()) return '/inicio';   // panel y equipos: Dirección y Coordinación
   return null;
 }
 
@@ -214,6 +216,7 @@ showConnection();
   let lastUser = S.user?.id || null;
   onChange((ev) => {
     renderHeader();
+    renderNav();
     if (ev.detail?.light) return;
     const uid = S.user?.id || null;
     if (uid && uid !== lastUser) {
@@ -221,7 +224,7 @@ showConnection();
       const token = takePendingInvite();
       lastUser = uid;
       if (token) { location.hash = '#/invitacion/' + token; return; }
-      if (location.hash.startsWith('#/login') || !location.hash) { location.hash = S.memberships.length ? '#/inicio' : '#/bienvenida'; return; }
+      if (location.hash.startsWith('#/login') || !location.hash || location.hash === '#/') { location.hash = '#' + homePath(); return; }
     }
     lastUser = uid;
     rerender();
@@ -231,5 +234,8 @@ showConnection();
     const token = takePendingInvite();
     if (token) location.replace('#/invitacion/' + token);
   }
+  // Sin ruta: cada perfil entra en su página (Dirección y Coordinación, al panel del club).
+  if (!location.hash || location.hash === '#' || location.hash === '#/') location.replace('#' + homePath());
+  initNav();
   startRouter($('main'), { guard });
 })();

@@ -39,16 +39,29 @@
     </div>
   </header>
 
-  <div class="banner" id="setupBanner" hidden>
-    <strong>Falta configurar Supabase.</strong>
-    La app funciona en modo de prueba: rellena <code>js/config.js</code> con la Project URL y la clave anon de tu proyecto.
+  <div class="layout">
+    <nav class="sidebar" id="sidebar" aria-label="Navegación principal" hidden></nav>
+    <div class="content">
+      <div class="team-banner" id="teamBanner" role="status" hidden></div>
+      <div class="banner" id="setupBanner" hidden>
+        <strong>Falta configurar Supabase.</strong>
+        La app funciona en modo de prueba: rellena <code>js/config.js</code> con la Project URL y la clave anon de tu proyecto.
+      </div>
+
+      <main id="main" tabindex="-1"></main>
+
+      <footer class="foot">
+        <span>Club Gestor <span id="appVersion"></span></span>
+      </footer>
+    </div>
   </div>
 
-  <main id="main" tabindex="-1"></main>
+  <nav class="bottom-nav" id="bottomNav" aria-label="Navegación" hidden></nav>
 
-  <footer class="foot">
-    <span>Club Gestor <span id="appVersion"></span></span>
-  </footer>
+  <dialog id="moreDlg" class="sheet" aria-labelledby="moreTitle">
+    <div class="sheet-head"><h2 id="moreTitle">Menú</h2><button class="icon-btn" type="button" data-close aria-label="Cerrar">✕</button></div>
+    <div id="moreBody"></div>
+  </dialog>
 
   <dialog id="newsDlg" aria-labelledby="newsTitle">
     <form method="dialog">

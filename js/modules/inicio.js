@@ -29,8 +29,9 @@ export async function render(el) {
   el.innerHTML = `
     <div class="page-head">
       <div>
-        <h1>${esc(S.club.name)}</h1>
-        <p>Hola${first ? ', ' + esc(first) : ''}. Tu perfil: <strong>${esc(roleLabel())}</strong>${S.team ? ` · equipo <strong>${esc(S.team.name)}</strong>` : ''}.</p>
+        <p class="eyebrow">Mi equipo · ${esc(S.club.short_name || S.club.name)}</p>
+        <h1>${esc(S.team?.name || S.club.name)}</h1>
+        <p>Hola${first ? ', ' + esc(first) : ''}. Tu perfil: <strong>${esc(roleLabel())}</strong>${S.team?.category ? ` · ${esc(S.team.category)}` : ''}.</p>
       </div>
     </div>
     ${!S.team ? `<p class="note">Este club aún no tiene equipos en esta temporada. ${permission('admin').ok ? '<a href="#/config?tab=temporadas">Crea uno en Configuración</a>.' : 'La Dirección del club puede crearlos en Configuración.'}</p>` : ''}
