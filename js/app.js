@@ -27,7 +27,10 @@ function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   document.querySelector('meta[name="theme-color"]').content = theme === 'light' ? '#f3f5f7' : '#0f1419';
 }
-applyTheme(store(THEME_KEY) || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'));
+// Orden: lo que elige cada persona en su dispositivo (◐) > tema del club > sistema.
+const systemTheme = () => (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+const themeFor = () => store(THEME_KEY) || S.club?.theme || systemTheme();
+applyTheme(store(THEME_KEY) || systemTheme());
 $('themeBtn').addEventListener('click', () => {
   const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
   applyTheme(next);
@@ -62,6 +65,7 @@ function readableInk(hex) {
 function renderHeader() {
   const root = document.documentElement.style;
   const club = S.club;
+  applyTheme(themeFor());
   if (club) {
     root.setProperty('--accent', club.primary_color);
     root.setProperty('--accent-2', club.secondary_color);
@@ -204,8 +208,9 @@ showConnection();
   renderHeader();
 
   let lastUser = S.user?.id || null;
-  onChange(() => {
+  onChange((ev) => {
     renderHeader();
+    if (ev.detail?.light) return;
     const uid = S.user?.id || null;
     if (uid && uid !== lastUser) {
       // Acaba de entrar: primero una invitación pendiente, si la hay.

@@ -1,21 +1,22 @@
-// Configuración del club. En la v0.3.0: Personas (roles, equipos e invitaciones).
-// Identidad, página inicial, temporadas y equipos llegan con el Prompt 4.
+// Configuración del club: identidad, página inicial, temporadas y equipos, y personas.
+// Cada apartado está en su archivo (config-*.js); Personas está aquí.
 import { esc, toast, busy, ask, copyText, formValues, permNote } from '../ui.js';
 import { sb } from '../supabase.js';
 import { S, ROLES, ROLE_LABEL, refresh, permission, appBaseUrl } from '../session.js';
 import { fmt } from '../lib/dates.js';
 
 const TABS = [
-  ['personas', 'Personas'],
-  ['identidad', 'Identidad'],
-  ['inicio', 'Página inicial'],
-  ['temporadas', 'Temporadas y equipos']
+  ['identidad', 'Identidad', () => import('./config-identidad.js')],
+  ['inicio', 'Página inicial', () => import('./config-inicio.js')],
+  ['temporadas', 'Temporadas y equipos', () => import('./config-temporadas.js')],
+  ['personas', 'Personas', null]
 ];
 
 export async function render(el, ctx) {
   if (!S.club) { el.innerHTML = '<div class="card empty"><p>Elige o crea un club primero.</p></div>'; return; }
-  const tab = ctx.query.get('tab') || 'personas';
   const perm = permission('admin');
+  const wanted = ctx.query.get('tab');
+  const tab = TABS.find((t) => t[0] === wanted) || (perm.ok ? TABS[0] : TABS[3]);
 
   el.innerHTML = `
     <div class="page-head">
@@ -24,12 +25,13 @@ export async function render(el, ctx) {
     </div>
     ${permNote(perm)}
     <nav class="tabs page-tabs" aria-label="Apartados de la configuración">
-      ${TABS.map(([k, label]) => `<a class="tab" href="#/config?tab=${k}" aria-current="${k === tab ? 'page' : 'false'}">${label}</a>`).join('')}
+      ${TABS.map(([k, label]) => `<a class="tab" href="#/config?tab=${k}" aria-current="${k === tab[0] ? 'page' : 'false'}">${label}</a>`).join('')}
     </nav>
     <div id="cfgBody"></div>`;
   const body = el.querySelector('#cfgBody');
-  if (tab === 'personas') return renderPeople(body, perm.ok);
-  body.innerHTML = `<div class="card empty"><div class="big">🚧</div><h2>En construcción</h2><p>Este apartado se construye con el <strong>Prompt 4</strong> (escudo, colores, orden de los botones, temporadas y equipos).</p></div>`;
+  if (!tab[2]) return renderPeople(body, perm.ok);
+  const mod = await tab[2]();
+  return mod.render(body, { canEdit: perm.ok });
 }
 
 // ---------------------------------------------------------------------

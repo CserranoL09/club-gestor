@@ -1,7 +1,19 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.3.0';
+export const APP_VERSION = '0.4.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.4.0',
+    date: '25/11/2026',
+    items: [
+      'Inicio con tarjetas resumen: próximo partido con cuenta atrás, última y próxima sesión, microciclo actual, lesionados, asistencia de las últimas 4 semanas y comentarios del profesor.',
+      'Prepartido y Partido abren el próximo partido; Postpartido, el último jugado.',
+      'Configuración → Identidad: nombre, escudo, colores, tema y tipografía, con vista previa al momento.',
+      'Configuración → Página inicial: ordena (arrastrando o con flechas), oculta o renombra los botones y elige las tarjetas.',
+      'Configuración → Temporadas y equipos: nueva temporada a partir de la anterior (equipos, plantilla y morfociclos), temporada actual, archivar, y crear o editar equipos.',
+      'Guardado automático con indicador; si no hay conexión, se guarda al volver. Aviso si otra persona cambió lo mismo.'
+    ]
+  },
   {
     version: '0.3.0',
     date: '24/11/2026',

@@ -1,5 +1,15 @@
 # Novedades de Club Gestor
 
+## v0.4.0 · 25/11/2026
+
+- Inicio con tarjetas resumen: próximo partido con cuenta atrás, última y próxima sesión, microciclo actual, lesionados, asistencia de las últimas 4 semanas y comentarios del profesor.
+- Prepartido y Partido abren el próximo partido; Postpartido, el último jugado.
+- Configuración → Identidad: nombre, escudo, colores, tema y tipografía, con vista previa al momento.
+- Configuración → Página inicial: ordena (arrastrando o con flechas), oculta o renombra los botones y elige las tarjetas.
+- Configuración → Temporadas y equipos: nueva temporada a partir de la anterior (equipos, plantilla y morfociclos), temporada actual, archivar, y crear o editar equipos.
+- Guardado automático con indicador; si no hay conexión, se guarda al volver. Aviso si otra persona cambió lo mismo.
+- Base de datos: migración `002_nueva_temporada.sql`.
+
 ## v0.3.0 · 24/11/2026
 
 - Cuentas: entrar con contraseña, crear cuenta, enlace por email y recuperar la contraseña.

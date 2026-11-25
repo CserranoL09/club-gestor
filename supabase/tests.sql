@@ -18,7 +18,7 @@ declare
   u_t   uuid := gen_random_uuid();   -- profesor
   c_a uuid; c_b uuid; s_a uuid; t_a1 uuid; t_a2 uuid; t_b uuid;
   cls uuid; code text; tok text; tok_p text; cmt uuid; ses uuid;
-  n_ int; ok_ boolean; cnt int;
+  n_ int; ok_ boolean; cnt int; s_new uuid;
   names text[] := '{}'; oks boolean[] := '{}';
 begin
   -- Usuarios de prueba (como si se hubieran registrado)
@@ -124,6 +124,25 @@ begin
   update public.club_members set role = 'admin' where club_id = c_a and user_id = u_e;
   get diagnostics n_ = row_count;
   names := names || 'E no puede subirse a administrador'::text; oks := oks || (n_ = 0);
+
+  begin
+    perform public.copy_season(s_a, '2027/28', '2027-08-02', '2028-06-30', true, false);
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'E no puede crear una temporada nueva'::text; oks := oks || ok_;
+
+  -- A copia la temporada: equipos, plantilla y asignaciones de E
+  perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
+  s_new := public.copy_season(s_a, '2027/28', '2027-08-02', '2028-06-30', true, true);
+  select count(*) into cnt from public.teams where season_id = s_new;
+  names := names || 'Nueva temporada: se copian los equipos'::text; oks := oks || (cnt = 2);
+  select count(*) into cnt from public.players p join public.teams t on t.id = p.team_id where t.season_id = s_new;
+  names := names || 'Nueva temporada: se copia la plantilla'::text; oks := oks || (cnt = 1);
+  select cardinality(team_ids) into cnt from public.club_members where club_id = c_a and user_id = u_e;
+  names := names || 'Nueva temporada: el entrenador conserva su equipo en la copia'::text; oks := oks || (cnt = 2);
+  select count(*) into cnt from public.seasons where club_id = c_a and is_current;
+  names := names || 'Nueva temporada: solo una temporada actual'::text; oks := oks || (cnt = 1);
 
   -- ---------- Preparador P ----------
   perform set_config('request.jwt.claims', json_build_object('sub', u_p, 'role', 'authenticated')::text, true);

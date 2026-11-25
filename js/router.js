@@ -1,5 +1,6 @@
 // Rutas por hash (#/modulo/:id). Cada módulo exporta render(el, ctx).
 import { MODULES } from './modules/list.js';
+import { flushAll } from './store.js';
 
 const ROUTES = [
   { path: '/login', load: () => import('./modules/login.js'), public: true },
@@ -64,6 +65,7 @@ export function startRouter(main, { guard = () => null } = {}) {
     const mine = ++seq;
     main.setAttribute('aria-busy', 'true');
     try {
+      await flushAll();                        // guardar lo pendiente de la página anterior
       const view = await loader();
       if (mine !== seq) return;              // se ha cambiado de página mientras cargaba
       main.innerHTML = '';

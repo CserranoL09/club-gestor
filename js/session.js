@@ -30,7 +30,8 @@ export const S = {
 const bus = new EventTarget();
 /** Avisa cuando cambia la sesión o el contexto (club, temporada, equipo). */
 export function onChange(fn) { bus.addEventListener('change', fn); }
-function emit() { bus.dispatchEvent(new Event('change')); }
+// light = solo ha cambiado el aspecto del club (cabecera), no hace falta volver a pintar la página.
+function emit(light = false) { bus.dispatchEvent(new CustomEvent('change', { detail: { light } })); }
 
 let sb = null;
 const PENDING_INVITE = 'clubgestor:pendingInvite';
@@ -135,6 +136,35 @@ export async function selectClub(clubId, { silent = false } = {}) {
   }
   saveCtx();
   if (!silent) emit();
+}
+
+/** Aplica cambios del club en pantalla al momento (vista previa) sin volver a leer. */
+export function patchClub(patch) {
+  if (!S.club) return;
+  Object.assign(S.club, patch);
+  emit(true);
+}
+
+/** Aplica cambios de un equipo en pantalla (nombre en la cabecera) sin volver a leer. */
+export function patchTeam(teamId, patch) {
+  const t = S.teams.find((x) => x.id === teamId);
+  if (t) Object.assign(t, patch);
+  emit(true);
+}
+
+/** Vuelve a pedir la URL firmada del escudo (después de subir o quitar uno). */
+export async function refreshCrest() {
+  S.crestUrl = '';
+  if (S.club?.crest_path) {
+    const { data } = await sb.storage.from('club-files').createSignedUrl(S.club.crest_path, 3600);
+    S.crestUrl = data?.signedUrl || '';
+  }
+  emit(true);
+}
+
+/** Vuelve a leer temporadas y equipos del club activo (después de crearlos o editarlos). */
+export async function reloadClubData() {
+  if (S.club) await selectClub(S.club.id);
 }
 
 function pickTeam(wantedId) {
