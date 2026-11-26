@@ -20,7 +20,7 @@ declare
   u_y   uuid := gen_random_uuid();   -- 2.º entrenador / delegado del equipo A1
   c_a uuid; c_b uuid; s_a uuid; t_a1 uuid; t_a2 uuid; t_b uuid;
   cls uuid; code text; tok text; tok_p text; cmt uuid; ses uuid;
-  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text; c_root uuid; pr uuid; tk uuid; tpl uuid; t_tpl uuid; st text; fac uuid; vest uuid; mon date; bk uuid; ses_g uuid; m_g uuid;
+  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text; c_root uuid; pr uuid; tk uuid; tpl uuid; t_tpl uuid; st text; fac uuid; vest uuid; mon date; bk uuid; ses_g uuid; m_g uuid; pl uuid; js jsonb;
   names text[] := '{}'; oks boolean[] := '{}';
 begin
   -- Usuarios de prueba (como si se hubieran registrado)
@@ -483,6 +483,23 @@ begin
   perform public.set_team_schedule(t_a1, (select schedule from public.teams where id = t_a1), '#0ea5e9');
   select count(*) into cnt from public.teams where id = t_a1 and color = '#0ea5e9';
   names := names || 'Coordinación: ajusta el horario de su equipo'::text; oks := oks || (cnt = 1);
+
+  -- ---------- Plantilla: datos de un jugador antes de borrarlo ----------
+  perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
+  select id into pl from public.players where team_id = t_a1 and number = 7;
+  js := public.player_usage(pl);
+  names := names || 'Plantilla: jugador sin datos (se puede borrar)'::text; oks := oks || ((js ->> 'sessions')::int = 0 and (js ->> 'matches')::int = 0);
+  insert into public.sessions (team_id, date, attendance) values (t_a1, current_date, jsonb_build_object(pl::text, jsonb_build_object('status', 'D')));
+  update public.matches set squad = jsonb_build_array(jsonb_build_object('player_id', pl, 'called', true)) where id = m_g;
+  js := public.player_usage(pl);
+  names := names || 'Plantilla: detecta asistencia y convocatorias del jugador'::text; oks := oks || ((js ->> 'sessions')::int = 1 and (js ->> 'matches')::int = 1);
+  perform set_config('request.jwt.claims', json_build_object('sub', u_b, 'role', 'authenticated')::text, true);
+  begin
+    js := public.player_usage(pl);
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Plantilla: otro club no consulta tus jugadores'::text; oks := oks || ok_;
 
   perform set_config('request.jwt.claims', json_build_object('sub', u_b, 'role', 'authenticated')::text, true);
   select count(*) into cnt from public.facilities where club_id = c_a;

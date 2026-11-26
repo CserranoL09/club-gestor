@@ -789,3 +789,60 @@ a.stat:hover { border-color: var(--accent); }
   .cal-cell .ev-mini, .cal-cell .more { display: block !important; }
   .cal-cell .dots { display: none !important; }
 }
+
+/* ===== v0.10.0 · Plantilla de jugadores ===== */
+.squad-stats .stat { padding: 14px 16px; }
+.st-D strong { color: var(--ok); }
+.st-L strong { color: var(--danger); }
+.st-A strong { color: var(--warn); }
+.squad-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.squad-sort { display: flex; gap: 10px 14px; align-items: center; flex-wrap: wrap; min-width: 0; }
+.squad-toolbar select { width: auto; }
+.squad-toolbar .check { margin: 0; }
+.btn.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.pl-list { list-style: none; margin: 0; padding: 0; }
+.pl-row { display: grid; grid-template-columns: 72px minmax(160px, 2.2fr) 92px 112px 92px 136px 84px auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.pl-row > * { min-width: 0; }
+.pl-row input:not([type=checkbox]), .pl-row select { width: 100%; }
+.pl-row input[data-f=number], .pl-new [name=number] { text-align: center; font-weight: 700; }
+.pl-head { font-size: .74rem; font-weight: 700; color: var(--ink-2); text-transform: uppercase; letter-spacing: .06em; padding-top: 0; }
+.pl-row.is-hidden { opacity: .55; }
+.pl-err { grid-column: 1 / -1; color: var(--danger); font-weight: 600; }
+.pl-actions { display: flex; gap: 6px; justify-content: flex-end; align-items: center; }
+.pl-active { margin: 0; }
+.pl-new { grid-template-columns: 72px minmax(160px, 1fr) 110px auto; border-bottom: 0; padding-top: 14px; }
+.status-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--line); font: 700 .9rem var(--font); cursor: pointer; background: var(--surface-2); color: var(--ink); }
+.status-btn small { font-weight: 600; font-size: .78rem; }
+.status-btn.st-D { background: color-mix(in srgb, var(--ok) 18%, transparent); border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+.status-btn.st-L { background: color-mix(in srgb, var(--danger) 18%, transparent); border-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+.status-btn.st-A { background: color-mix(in srgb, var(--warn) 18%, transparent); border-color: color-mix(in srgb, var(--warn) 45%, transparent); }
+.status-btn:disabled { cursor: default; opacity: 1; }
+.status-btn.static { cursor: default; min-height: 32px; }
+.paste textarea { width: 100%; font-family: ui-monospace, monospace; }
+.simple-table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.simple-table th, .simple-table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.simple-table tr.bad td { color: var(--danger); }
+.simple-table tr.warnrow td:last-child { color: var(--warn); }
+.copy-list { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 2px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.copy-list .check { margin: 0; min-height: 40px; }
+.shirt { display: inline-grid; place-items: center; min-width: 52px; height: 52px; padding: 0 8px; border-radius: 12px; background: var(--accent); color: var(--accent-ink); font: 700 1.6rem var(--font-title); vertical-align: middle; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.grid-2 .card + .card { margin-top: 0; }
+@media (max-width: 900px) {
+  .pl-head { display: none; }
+  .pl-row { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 12px 0; }
+  .pl-row [data-f=name] { grid-column: 2 / 4; }
+  .pl-row .status-btn { grid-column: 1 / 3; justify-self: start; }
+  .pl-row .pl-active { grid-column: 3; justify-self: end; }
+  .pl-row .pl-actions { grid-column: 1 / -1; justify-content: flex-start; }
+  .pl-new { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .pl-new [name=name] { grid-column: 2 / 4; }
+  .pl-new select { grid-column: 1 / 3; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .squad-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media print {
+  .pl-row { grid-template-columns: 50px 2fr 70px 80px 60px 110px 60px 0; }
+  .pl-row input, .pl-row select, .status-btn { border: 0 !important; background: none !important; color: #000 !important; -webkit-appearance: none; appearance: none; padding: 0; }
+  .pl-actions { display: none; }
+}

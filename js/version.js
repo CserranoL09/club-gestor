@@ -1,7 +1,21 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.9.0';
+export const APP_VERSION = '0.10.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.10.0',
+    date: '26/11/2026',
+    items: [
+      'Plantilla de jugadores: dorsal, nombre, posición, pie, año, estado y activo, con edición en línea y guardado automático.',
+      'Estado con un toque (disponible → lesionado → ausente) y contadores como en la hoja SESIÓN.',
+      'Dorsal único entre los jugadores activos, con aviso claro.',
+      '«Pegar lista» desde el Excel con vista previa y revisión línea a línea, y «Copiar de otro equipo o temporada».',
+      'Quitar a un jugador con datos propone marcarlo como inactivo para conservar sus estadísticas.',
+      'Ficha del jugador con sus datos y su asistencia, preparada para las estadísticas.',
+      'Exportar la plantilla a Excel e imprimirla; comentarios de la Coordinación en la plantilla y en cada jugador.',
+      'Migración SQL 007_plantilla.sql.'
+    ]
+  },
   {
     version: '0.9.0',
     date: '26/11/2026',

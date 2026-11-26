@@ -26,8 +26,8 @@ function teamItems() {
       hide: ['periodizacion', 'macrociclo', 'morfociclo'].every((k) => hidden.has(k)) },
     { key: 'partidos', href: '#/partidos', icon: '📋', label: 'Partidos', match: (p) => p.startsWith('/partidos'),
       hide: ['prepartido', 'partido', 'postpartido'].every((k) => hidden.has(k)) },
-    { key: 'plantilla', href: '#/plantilla', icon: '👥', label: label('plantilla'), match: (p) => p === '/plantilla', hide: hidden.has('plantilla') },
-    { key: 'estadisticas', href: '#/estadisticas', icon: '📊', label: label('estadisticas'), match: (p) => p === '/estadisticas' || p.startsWith('/jugador'), hide: hidden.has('estadisticas') },
+    { key: 'plantilla', href: '#/plantilla', icon: '👥', label: label('plantilla'), match: (p) => p === '/plantilla' || p.startsWith('/jugador'), hide: hidden.has('plantilla') },
+    { key: 'estadisticas', href: '#/estadisticas', icon: '📊', label: label('estadisticas'), match: (p) => p === '/estadisticas', hide: hidden.has('estadisticas') },
     // Quien gestiona el club tiene la bandeja en el grupo del club.
     { key: 'comentarios', href: '#/comentarios', icon: '💬', label: 'Comentarios', match: (p) => p === '/comentarios', hide: isClubManager() },
     { key: 'calendario', href: '#/calendario', icon: '📅', label: 'Calendario', match: (p) => p === '/calendario', hide: isClubManager() },

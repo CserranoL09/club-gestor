@@ -10,6 +10,7 @@ export function entityInfo(entity, entityId) {
   if (entity === 'team') return { label: 'Equipo (general)', href: '#/inicio' };
   if (entity === 'session' && entityId) return { label: 'Sesión', href: `#/sesiones/${entityId}` };
   if (entity === 'match' && entityId) return { label: 'Partido', href: `#/partidos/${entityId}/prepartido` };
+  if (entity === 'player' && entityId) return { label: 'Jugador', href: `#/jugador/${entityId}` };
   const m = MODULES.find((x) => x.key === entity);
   if (m) return { label: m.name, href: m.route };
   return { label: entity, href: '#/inicio' };

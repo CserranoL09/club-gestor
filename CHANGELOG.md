@@ -1,5 +1,16 @@
 # Novedades de Club Gestor
 
+## v0.10.0 · 26/11/2026 · Plantilla de jugadores (Prompt 5)
+
+- Plantilla de jugadores: dorsal, nombre, posición, pie, año, estado y activo, con edición en línea y guardado automático.
+- Estado con un toque (disponible → lesionado → ausente) y contadores como en la hoja SESIÓN.
+- Dorsal único entre los jugadores activos, con aviso claro.
+- «Pegar lista» desde el Excel con vista previa y revisión línea a línea, y «Copiar de otro equipo o temporada».
+- Quitar a un jugador con datos propone marcarlo como inactivo para conservar sus estadísticas.
+- Ficha del jugador con sus datos y su asistencia, preparada para las estadísticas.
+- Exportar la plantilla a Excel e imprimirla; comentarios de la Coordinación en la plantilla y en cada jugador.
+- Migración SQL 007_plantilla.sql.
+
 ## v0.9.0 · 26/11/2026 · Calendario del club e instalaciones (fase R5)
 
 - Calendario del club: sesiones, partidos y reservas de todos los equipos en vista semana y mes, con colores por equipo y filtros por equipo y categoría.

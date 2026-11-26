@@ -20,7 +20,7 @@ const ROUTES = [
   { path: '/comentarios', load: () => import('./modules/comentarios.js'), area: 'inbox' },
 
   { path: '/inicio', load: () => import('./modules/inicio.js'), area: 'team' },
-  { path: '/plantilla', key: 'plantilla', area: 'team' },
+  { path: '/plantilla', key: 'plantilla', load: () => import('./modules/plantilla.js'), area: 'team' },
   { path: '/sesiones', key: 'sesiones', area: 'team' },
   { path: '/sesiones/:id', key: 'sesiones', area: 'team' },
   { path: '/planificacion', load: () => import('./modules/planificacion.js'), area: 'team' },
@@ -33,7 +33,7 @@ const ROUTES = [
   { path: '/partidos/:id/acta', key: 'partido', area: 'team' },
   { path: '/partidos/:id/postpartido', key: 'postpartido', area: 'team' },
   { path: '/estadisticas', key: 'estadisticas', area: 'team' },
-  { path: '/jugador/:id', key: 'estadisticas', title: 'Ficha del jugador', area: 'team' }
+  { path: '/jugador/:id', key: 'plantilla', load: () => import('./modules/jugador.js'), area: 'team' }
 ];
 
 function match(hash) {
