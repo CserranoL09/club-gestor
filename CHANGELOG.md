@@ -1,5 +1,15 @@
 # Novedades de Club Gestor
 
+## v0.7.0 · 26/11/2026 · Rediseño para clubes (fase R3)
+
+- Panel del club completo: una tarjeta por equipo con sesiones de la semana, asistencia, próximo partido, último resultado, informes pendientes, lesionados y comentarios.
+- Alertas del club configurables (sin entrenador, sin sesiones, informes atrasados, asistencia baja, convocatoria sin hacer).
+- Filtros del panel por categoría, modalidad y «solo con alertas».
+- Exportar el panel a PDF (imprimir) y a Excel.
+- Comentarios de supervisión en «Mi equipo» y en cada apartado: responder, resolver y borrar.
+- Bandeja de comentarios para la Dirección, la Coordinación y los entrenadores.
+- Sin cambios en la base de datos (no hay SQL que pegar).
+
 ## v0.6.0 · 26/11/2026 · Rediseño para clubes (fase R2)
 
 - Nueva navegación: barra lateral en el ordenador y barra inferior con «Más» en el móvil.

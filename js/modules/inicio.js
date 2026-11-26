@@ -6,6 +6,7 @@ import { MODULES } from './list.js';
 import { WIDGETS, normalizeLayout, orderedModules } from '../lib/layout.js';
 import { microcycleAt } from '../lib/periodization.js';
 import { fmt, mondayOf, addDays } from '../lib/dates.js';
+import { mountThread, entityInfo } from '../lib/comments.js';
 
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const dayDiff = (dateStr) => Math.round((new Date(dateStr + 'T00:00:00') - new Date(iso(new Date()) + 'T00:00:00')) / 86400000);
@@ -37,6 +38,7 @@ export async function render(el) {
     ${!S.team ? `<p class="note">Este club aún no tiene equipos en esta temporada. ${permission('admin').ok ? '<a href="#/config?tab=temporadas">Crea uno en Configuración</a>.' : 'La Dirección del club puede crearlos en Configuración.'}</p>` : ''}
     ${layout.widgets.length && S.team ? `<section class="widgets grid" aria-label="Resumen" id="widgets">${layout.widgets.map((k) => skeleton(k)).join('')}</section>` : ''}
     <nav class="modules" aria-label="Módulos" id="modules">${modules.map((m) => moduleTile(m, m.route)).join('')}</nav>
+    <div id="teamThread" class="mt"></div>
     ${!modules.length ? '<p class="hint">La Dirección del club ha ocultado todos los botones. Puedes volver a mostrarlos en Configuración → Página inicial.</p>' : ''}`;
 
   if (!S.team) return;
@@ -53,6 +55,7 @@ export async function render(el) {
 
   const box = el.querySelector('#widgets');
   if (box) box.innerHTML = layout.widgets.map((k) => widget(k, data)).join('');
+  await mountThread(el.querySelector('#teamThread'), { teamId: S.team.id, entity: 'team', title: 'Comentarios del equipo' });
 }
 
 function moduleTile(m, href) {
@@ -105,8 +108,9 @@ async function loadData(layout) {
       .gte('date', iso(addDays(new Date(), -28))).lte('date', today);
   }
   if (on.has('comentarios')) {
-    q.comments = client.from('comments').select('id, text, created_at, entity, section', { count: 'exact' })
-      .eq('club_id', S.club.id).eq('resolved', false).neq('author_id', S.user.id)
+    // Comentarios abiertos de este equipo (y los generales del club) escritos por otras personas.
+    q.comments = client.from('comments').select('id, text, created_at, entity, entity_id, section, author:profiles!comments_author_id_fkey(full_name)', { count: 'exact' })
+      .eq('club_id', S.club.id).or(`team_id.eq.${team},team_id.is.null`).eq('resolved', false).is('parent_id', null).neq('author_id', S.user.id)
       .order('created_at', { ascending: false }).limit(1);
   }
 
@@ -200,13 +204,12 @@ function widget(key, d) {
     case 'comentarios': {
       if (failed(d.comments)) return card(key, errorBody);
       const n = d.commentCount || 0;
-      if (!S.club.class_id && !n) return card(key, '<p class="muted">Tu club no está en ninguna clase.</p>', ['#/unirse', 'Unirme a una clase']);
-      if (!n) return card(key, '<p class="big-line">Todo al día ✓</p><p class="hint">No hay comentarios pendientes.</p>');
+      if (!n) return card(key, '<p class="big-line">Todo al día ✓</p><p class="hint">No tienes comentarios pendientes en este equipo.</p>', ['#/comentarios', 'Ver comentarios']);
       const c = d.comments[0];
       return card(key, `
         <p class="big-line">${n} ${n === 1 ? 'pendiente' : 'pendientes'}</p>
         <blockquote class="quote">${esc(String(c.text).slice(0, 140))}${c.text.length > 140 ? '…' : ''}</blockquote>
-        <p class="hint">${esc(fmt(c.created_at))}</p>`);
+        <p class="hint">${esc(c.author?.full_name || '')} · ${esc(entityInfo(c.entity, c.entity_id).label)} · ${esc(fmt(c.created_at))}</p>`, ['#/comentarios', 'Ver comentarios']);
     }
     default:
       return '';

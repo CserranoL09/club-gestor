@@ -8,7 +8,7 @@ export const WIDGETS = [
   { key: 'microciclo', icon: '🗓', name: 'Microciclo actual' },
   { key: 'lesionados', icon: '🩹', name: 'Jugadores lesionados' },
   { key: 'asistencia', icon: '✅', name: 'Asistencia (últimas 4 semanas)' },
-  { key: 'comentarios', icon: '💬', name: 'Comentarios del profesor' }
+  { key: 'comentarios', icon: '💬', name: 'Comentarios pendientes' }
 ];
 
 const MODULE_KEYS = MODULES.map((m) => m.key);

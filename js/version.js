@@ -1,7 +1,19 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.6.0';
+export const APP_VERSION = '0.7.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.7.0',
+    date: '26/11/2026',
+    items: [
+      'Panel del club completo: una tarjeta por equipo con sesiones de la semana, asistencia, próximo partido, último resultado, informes pendientes, lesionados y comentarios.',
+      'Alertas del club configurables (sin entrenador, sin sesiones, informes atrasados, asistencia baja, convocatoria sin hacer).',
+      'Filtros del panel por categoría, modalidad y «solo con alertas».',
+      'Exportar el panel a PDF (imprimir) y a Excel.',
+      'Comentarios de supervisión en «Mi equipo» y en cada apartado: responder, resolver y borrar.',
+      'Bandeja de comentarios para la Dirección, la Coordinación y los entrenadores.'
+    ]
+  },
   {
     version: '0.6.0',
     date: '26/11/2026',

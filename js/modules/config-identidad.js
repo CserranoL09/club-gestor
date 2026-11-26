@@ -2,6 +2,7 @@
 import { esc, toast, busy, ask, squareImage } from '../ui.js';
 import { sb } from '../supabase.js';
 import { S, patchClub, refreshCrest, clubSettings } from '../session.js';
+import { alertSettings } from '../lib/clubdata.js';
 import { autosaver } from '../store.js';
 
 const PRESETS = [
@@ -117,6 +118,15 @@ export async function render(el, { canEdit }) {
             <small class="muted">Desactivado: cada persona del cuerpo técnico solo ve los equipos que tiene asignados. Activado: ven el trabajo de todos los equipos del club (sin poder editarlo). La Dirección y la Coordinación siempre ven sus equipos.</small></span>
           </label>
         </fieldset>
+        <fieldset class="plain alerts-cfg" id="alertas" ${canEdit ? '' : 'disabled'}>
+          <h2 class="mt">Alertas del panel</h2>
+          <p class="hint">Qué avisos aparecen en el Panel del club. Pon 0 para desactivar las que llevan número.</p>
+          <label class="check"><input type="checkbox" data-alert="no_coach"${alertSettings().no_coach ? ' checked' : ''}> Equipo sin entrenador principal</label>
+          <label class="check"><input type="checkbox" data-alert="no_session"${alertSettings().no_session ? ' checked' : ''}> Equipo sin sesiones planificadas esta semana</label>
+          <div class="alert-num"><label for="al_report">Informe postpartido sin hacer a los</label><input id="al_report" type="number" min="0" max="30" data-alert-num="report_days" value="${alertSettings().report_days}"><span>días</span></div>
+          <div class="alert-num"><label for="al_att">Asistencia por debajo del</label><input id="al_att" type="number" min="0" max="100" data-alert-num="attendance_min" value="${alertSettings().attendance_min}"><span>%</span></div>
+          <div class="alert-num"><label for="al_squad">Convocatoria sin hacer</label><input id="al_squad" type="number" min="0" max="168" data-alert-num="squad_hours" value="${alertSettings().squad_hours}"><span>horas antes del partido</span></div>
+        </fieldset>
       </section>
     </div>
 
@@ -194,6 +204,20 @@ export async function render(el, { canEdit }) {
     inp.removeAttribute('aria-invalid');
     club[field] = value;
     saver.set({ [field]: value });
+  }));
+
+  // Alertas del panel
+  const saveAlerts = (patch) => {
+    const settings = { ...clubSettings(), alerts: { ...alertSettings(), ...patch } };
+    patchClub({ settings });
+    saver.set({ settings });
+  };
+  el.querySelectorAll('[data-alert]').forEach((c) => c.addEventListener('change', () => saveAlerts({ [c.dataset.alert]: c.checked })));
+  el.querySelectorAll('[data-alert-num]').forEach((i) => i.addEventListener('input', () => {
+    const v = parseInt(i.value, 10);
+    if (!Number.isFinite(v) || v < +i.min || v > +i.max) { i.setAttribute('aria-invalid', 'true'); return; }
+    i.removeAttribute('aria-invalid');
+    saveAlerts({ [i.dataset.alertNum]: v });
   }));
 
   // Acceso de los entrenadores

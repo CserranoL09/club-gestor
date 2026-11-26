@@ -7,6 +7,7 @@ import { normalizeLayout, moduleLabel } from './lib/layout.js';
 const CLUB_ITEMS = [
   { key: 'club', href: '#/club', icon: '🏟', label: 'Panel del club', match: (p) => p === '/club' },
   { key: 'equipos', href: '#/equipos', icon: '🛡', label: 'Equipos', match: (p) => p === '/equipos' },
+  { key: 'comentarios', href: '#/comentarios', icon: '💬', label: 'Comentarios', match: (p) => p === '/comentarios' },
   { key: 'calendario', href: '#/calendario', icon: '📅', label: 'Calendario', match: (p) => p === '/calendario' },
   { key: 'metodologia', href: '#/metodologia', icon: '📘', label: 'Metodología', match: (p) => p === '/metodologia' },
   { key: 'personas', href: '#/config?tab=personas', icon: '🧑‍🤝‍🧑', label: 'Personas', match: (p, q) => p === '/config' && q?.get('tab') === 'personas' },
@@ -26,7 +27,9 @@ function teamItems() {
     { key: 'partidos', href: '#/partidos', icon: '📋', label: 'Partidos', match: (p) => p.startsWith('/partidos'),
       hide: ['prepartido', 'partido', 'postpartido'].every((k) => hidden.has(k)) },
     { key: 'plantilla', href: '#/plantilla', icon: '👥', label: label('plantilla'), match: (p) => p === '/plantilla', hide: hidden.has('plantilla') },
-    { key: 'estadisticas', href: '#/estadisticas', icon: '📊', label: label('estadisticas'), match: (p) => p === '/estadisticas' || p.startsWith('/jugador'), hide: hidden.has('estadisticas') }
+    { key: 'estadisticas', href: '#/estadisticas', icon: '📊', label: label('estadisticas'), match: (p) => p === '/estadisticas' || p.startsWith('/jugador'), hide: hidden.has('estadisticas') },
+    // Quien gestiona el club tiene la bandeja en el grupo del club.
+    { key: 'comentarios', href: '#/comentarios', icon: '💬', label: 'Comentarios', match: (p) => p === '/comentarios', hide: isClubManager() }
   ];
   return items.filter((i) => !i.hide);
 }

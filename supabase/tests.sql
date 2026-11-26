@@ -20,7 +20,7 @@ declare
   u_y   uuid := gen_random_uuid();   -- 2.º entrenador / delegado del equipo A1
   c_a uuid; c_b uuid; s_a uuid; t_a1 uuid; t_a2 uuid; t_b uuid;
   cls uuid; code text; tok text; tok_p text; cmt uuid; ses uuid;
-  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text;
+  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text; c_root uuid;
   names text[] := '{}'; oks boolean[] := '{}';
 begin
   -- Usuarios de prueba (como si se hubieran registrado)
@@ -304,6 +304,25 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', u_t, 'role', 'authenticated')::text, true);
   select count(*) into cnt from public.comments where club_id = c_a and team_id = t_a1;
   names := names || 'Profesor: ve los comentarios de todos los equipos'::text; oks := oks || (cnt = 2);
+
+  -- ---------- Comentarios de supervisión (v0.7.0) ----------
+  perform set_config('request.jwt.claims', json_build_object('sub', u_k, 'role', 'authenticated')::text, true);
+  insert into public.comments (club_id, team_id, entity, section, text) values (c_a, t_a1, 'sesiones', 'general', 'Revisad la carga del martes') returning id into c_root;
+  perform set_config('request.jwt.claims', json_build_object('sub', u_y, 'role', 'authenticated')::text, true);
+  insert into public.comments (club_id, team_id, entity, section, parent_id, text) values (c_a, t_a1, 'sesiones', 'general', c_root, 'Hecho, bajamos el volumen');
+  names := names || 'Cuerpo técnico: responde a la Coordinación'::text; oks := oks || true;
+  update public.comments set resolved = true where id = c_root;
+  get diagnostics n_ = row_count;
+  names := names || 'Cuerpo técnico: marca el comentario como resuelto'::text; oks := oks || (n_ = 1);
+  begin
+    update public.comments set text = 'Cambiado' where id = c_root;
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Cuerpo técnico: no cambia el texto de la Coordinación'::text; oks := oks || ok_;
+  perform set_config('request.jwt.claims', json_build_object('sub', u_e, 'role', 'authenticated')::text, true);
+  select count(*) into cnt from public.comments where entity = 'sesiones' and team_id = t_a1;
+  names := names || 'Otro equipo: no ve la conversación'::text; oks := oks || (cnt = 0);
 
   -- ---------- Alta rápida de equipos e invitaciones por equipo (v0.6.0) ----------
   perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);

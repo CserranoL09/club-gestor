@@ -7,7 +7,7 @@ const MOD = { f11: 'Fútbol 11', f7: 'Fútbol 7' };
 
 export async function render(el, ctx) {
   el.innerHTML = '<div class="card"><p class="hint">Cargando equipos…</p></div>';
-  const d = await loadClubOverview();
+  const d = await loadClubOverview({ withMetrics: false });
   const cats = [...new Set(d.teams.map((t) => t.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'es'));
   const filter = ctx.query.get('cat') || '';
   const teams = filter ? d.teams.filter((t) => t.category === filter) : d.teams;

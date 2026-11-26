@@ -44,6 +44,12 @@ NAVEGACIÓN Y PRIMERA EXPERIENCIA (desde la v0.6.0)
 - nav.js: barra lateral (grupo Club + grupo del equipo activo), barra inferior en móvil (4 accesos + «Más») y franja «Viendo <equipo> · volver al club» para Dirección y Coordinación en páginas de equipo.
 - RPC create_team(club, season, name, category, modality…) crea el equipo con su morfociclo estándar.
 
+PANEL DEL CLUB Y SUPERVISIÓN (desde la v0.7.0)
+- #/club: cifras, alertas y una tarjeta por equipo (cuerpo técnico, sesiones de la semana planificadas/hechas, asistencia 4 semanas, próximo partido y convocados, último resultado, informes postpartido pendientes, jugadores y lesionados, comentarios abiertos). Filtros por categoría, modalidad y «solo con alertas» en la URL. Exportar: imprimir/PDF (@media print) y Excel (js/lib/xlsx.js: SheetJS 0.18.5 bajo demanda, CSV de respaldo).
+- Cálculos en el navegador (js/lib/clubdata.js: loadClubOverview, computeAlerts) con lo que RLS deja leer. Sesión «hecha» = fecha ≤ hoy con asistencia registrada.
+- Alertas configurables en clubs.settings.alerts = { no_coach, no_session, report_days, attendance_min, squad_hours } (0 = desactivada), en Configuración → Club.
+- Comentarios: js/lib/comments.js → mountThread(el, { teamId, entity, entityId, section }) con responder, resolver y borrar; entity = 'team' | clave de módulo | 'session' | 'match'. Bandeja #/comentarios (área 'inbox') con filtros por equipo y estado. Cada módulo de equipo nuevo debe montar su hilo (y por apartado si tiene secciones).
+
 ARQUITECTURA (respétala)
 - Sin build y sin frameworks: módulos ES nativos (<script type="module">). Librerías solo por CDN y con versión fija: @supabase/supabase-js v2 (jsDelivr, +esm) y SheetJS 0.18.5 (cdnjs con respaldo en jsDelivr, cargada solo al exportar o importar Excel). Fuentes de Google Fonts.
 - Archivos:
