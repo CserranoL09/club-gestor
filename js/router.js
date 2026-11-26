@@ -21,8 +21,8 @@ const ROUTES = [
 
   { path: '/inicio', load: () => import('./modules/inicio.js'), area: 'team' },
   { path: '/plantilla', key: 'plantilla', load: () => import('./modules/plantilla.js'), area: 'team' },
-  { path: '/sesiones', key: 'sesiones', area: 'team' },
-  { path: '/sesiones/:id', key: 'sesiones', area: 'team' },
+  { path: '/sesiones', key: 'sesiones', load: () => import('./modules/sesiones.js'), area: 'team' },
+  { path: '/sesiones/:id', key: 'sesiones', load: () => import('./modules/sesiones.js'), area: 'team' },
   { path: '/planificacion', load: () => import('./modules/planificacion.js'), area: 'team' },
   { path: '/periodizacion', key: 'periodizacion', area: 'team' },
   { path: '/macrociclo', key: 'macrociclo', area: 'team' },

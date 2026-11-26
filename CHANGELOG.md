@@ -1,5 +1,15 @@
 # Novedades de Club Gestor
 
+## v0.11.0 · 26/11/2026 · Sesiones de entrenamiento (Prompt 6)
+
+- Sesiones de entrenamiento (hoja SESIÓN): lista por microciclo con filtros por mes y microciclo, duración, nº de tareas y asistencia.
+- Nueva sesión con número, periodo y microciclo automáticos, cuerpo técnico del club, sesión tipo del club y objetivo sugerido por el morfociclo. Duplicar y borrar.
+- Ficha en secciones plegables: datos generales con distribución de tareas, cuerpo técnico, objetivos con sugerencias del morfociclo y del club, material del Excel con cantidades y observaciones.
+- Asistencia: estado con un toque, participación en cada tarea, notas, contadores y «Todos disponibles».
+- Tareas: calentamiento, tareas y vuelta a la calma con desarrollo, variantes, objetivos, roles, estructura e imagen; tiempo = series × duración + recuperaciones y aviso si se supera la duración.
+- Biblioteca: insertar tareas del club y guardar las propias (las de los entrenadores llegan como propuesta).
+- El preparador físico y el entrenador de porteros editan solo su objetivo, su rol y sus tareas (también lo impide la base de datos). Migración SQL 008_sesiones.sql.
+
 ## v0.10.0 · 26/11/2026 · Plantilla de jugadores (Prompt 5)
 
 - Plantilla de jugadores: dorsal, nombre, posición, pie, año, estado y activo, con edición en línea y guardado automático.

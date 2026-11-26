@@ -20,7 +20,7 @@ declare
   u_y   uuid := gen_random_uuid();   -- 2.º entrenador / delegado del equipo A1
   c_a uuid; c_b uuid; s_a uuid; t_a1 uuid; t_a2 uuid; t_b uuid;
   cls uuid; code text; tok text; tok_p text; cmt uuid; ses uuid;
-  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text; c_root uuid; pr uuid; tk uuid; tpl uuid; t_tpl uuid; st text; fac uuid; vest uuid; mon date; bk uuid; ses_g uuid; m_g uuid; pl uuid; js jsonb;
+  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text; c_root uuid; pr uuid; tk uuid; tpl uuid; t_tpl uuid; st text; fac uuid; vest uuid; mon date; bk uuid; ses_g uuid; m_g uuid; pl uuid; js jsonb; ses_l uuid;
   names text[] := '{}'; oks boolean[] := '{}';
 begin
   -- Usuarios de prueba (como si se hubieran registrado)
@@ -483,6 +483,46 @@ begin
   perform public.set_team_schedule(t_a1, (select schedule from public.teams where id = t_a1), '#0ea5e9');
   select count(*) into cnt from public.teams where id = t_a1 and color = '#0ea5e9';
   names := names || 'Coordinación: ajusta el horario de su equipo'::text; oks := oks || (cnt = 1);
+
+  -- ---------- Sesiones: preparador y porteros con edición limitada ----------
+  perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
+  insert into public.sessions (team_id, date, objectives, blocks) values (t_a1, current_date,
+    '{"general":"Conservar","condicional":""}',
+    jsonb_build_array(jsonb_build_object('id', 'b1', 'kind', 'task', 'title', 'Rondo', 'author_id', u_a, 'roles', '{}'::jsonb)))
+    returning id into ses_l;
+  perform set_config('request.jwt.claims', json_build_object('sub', u_p, 'role', 'authenticated')::text, true);
+  update public.sessions set objectives = objectives || '{"condicional":"Fuerza reactiva"}' where id = ses_l;
+  select count(*) into cnt from public.sessions where id = ses_l and objectives ->> 'condicional' = 'Fuerza reactiva';
+  names := names || 'Sesión: el preparador cambia el objetivo condicional'::text; oks := oks || (cnt = 1);
+  update public.sessions set blocks = jsonb_set(blocks, '{0,roles}', '{"preparador":"Control de cargas"}') where id = ses_l;
+  select count(*) into cnt from public.sessions where id = ses_l and blocks -> 0 -> 'roles' ->> 'preparador' = 'Control de cargas';
+  names := names || 'Sesión: el preparador escribe su rol en una tarea'::text; oks := oks || (cnt = 1);
+  update public.sessions set blocks = blocks || jsonb_build_array(jsonb_build_object('id', 'b2', 'kind', 'task', 'title', 'Circuito', 'author_id', u_p)) where id = ses_l;
+  update public.sessions set blocks = jsonb_set(blocks, '{1,title}', '"Circuito de fuerza"') where id = ses_l;
+  select count(*) into cnt from public.sessions where id = ses_l and blocks -> 1 ->> 'title' = 'Circuito de fuerza';
+  names := names || 'Sesión: el preparador crea y edita su propia tarea'::text; oks := oks || (cnt = 1);
+  begin
+    update public.sessions set objectives = objectives || '{"general":"Otro"}' where id = ses_l;
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Sesión: el preparador no cambia el objetivo general'::text; oks := oks || ok_;
+  begin
+    update public.sessions set blocks = jsonb_set(blocks, '{0,title}', '"Cambiado"') where id = ses_l;
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Sesión: el preparador no cambia las tareas de otros'::text; oks := oks || ok_;
+  begin
+    update public.sessions set notes = 'x' where id = ses_l;
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Sesión: el preparador no cambia observaciones ni asistencia'::text; oks := oks || ok_;
+  perform set_config('request.jwt.claims', json_build_object('sub', u_y, 'role', 'authenticated')::text, true);
+  update public.sessions set notes = 'Revisado por el delegado' where id = ses_l;
+  select count(*) into cnt from public.sessions where id = ses_l and notes = 'Revisado por el delegado';
+  names := names || 'Sesión: el 2.º entrenador edita toda la ficha'::text; oks := oks || (cnt = 1);
 
   -- ---------- Plantilla: datos de un jugador antes de borrarlo ----------
   perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
