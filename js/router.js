@@ -14,7 +14,7 @@ const ROUTES = [
 
   { path: '/club', load: () => import('./modules/club.js'), area: 'club', managers: true },
   { path: '/equipos', load: () => import('./modules/equipos.js'), area: 'club', managers: true },
-  { path: '/calendario', title: 'Calendario del club', icon: '📅', phase: 'R5', desc: 'Sesiones y partidos de todos los equipos, instalaciones y reservas de campo.', area: 'club' },
+  { path: '/calendario', load: () => import('./modules/calendario.js'), area: 'inbox' },
   { path: '/metodologia', load: () => import('./modules/metodologia.js'), area: 'inbox' },
   { path: '/config', load: () => import('./modules/config.js'), key: 'config', area: 'club' },
   { path: '/comentarios', load: () => import('./modules/comentarios.js'), area: 'inbox' },

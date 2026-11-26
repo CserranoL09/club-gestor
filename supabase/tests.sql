@@ -20,7 +20,7 @@ declare
   u_y   uuid := gen_random_uuid();   -- 2.º entrenador / delegado del equipo A1
   c_a uuid; c_b uuid; s_a uuid; t_a1 uuid; t_a2 uuid; t_b uuid;
   cls uuid; code text; tok text; tok_p text; cmt uuid; ses uuid;
-  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text; c_root uuid; pr uuid; tk uuid; tpl uuid; t_tpl uuid; st text;
+  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text; c_root uuid; pr uuid; tk uuid; tpl uuid; t_tpl uuid; st text; fac uuid; vest uuid; mon date; bk uuid; ses_g uuid; m_g uuid;
   names text[] := '{}'; oks boolean[] := '{}';
 begin
   -- Usuarios de prueba (como si se hubieran registrado)
@@ -426,6 +426,68 @@ begin
   names := names || 'Equipo de rendimiento: no recibe la plantilla de base'::text; oks := oks || (cnt = 1);
   select public.apply_template(tpl, s_a) into cnt;
   names := names || 'Dirección: aplica la plantilla a los equipos de su etapa'::text; oks := oks || (cnt >= 1);
+
+  -- ---------- R5 · Instalaciones, reservas y horario base ----------
+  perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
+  insert into public.facilities (club_id, name, kind) values (c_a, 'Campo 1', 'campo') returning id into fac;
+  insert into public.facilities (club_id, name, kind) values (c_a, 'Vestuario 1', 'vestuario') returning id into vest;
+  names := names || 'Dirección: crea instalaciones'::text; oks := oks || (fac is not null and vest is not null);
+  mon := date_trunc('week', date '2026-10-14')::date;
+  perform public.set_team_schedule(t_a1, jsonb_build_array(
+    jsonb_build_object('day', 0, 'start', '18:00', 'end', '19:30', 'facility_id', fac, 'share', 2),
+    jsonb_build_object('day', 2, 'start', '18:00', 'end', '19:30')), '#22c55e');
+  select count(*) into cnt from public.teams where id = t_a1 and color = '#22c55e' and jsonb_array_length(schedule) = 2;
+  names := names || 'Dirección: guarda el horario base y el color del equipo'::text; oks := oks || (cnt = 1);
+  insert into public.matches (team_id, season_id, date, time, rival) values (t_a1, s_a, mon + 2, '11:00', 'Rival R5') returning id into m_g;
+  select public.generate_week_sessions(s_a, mon + 3) into cnt;
+  names := names || 'Horario: genera las sesiones de la semana (no el día de partido)'::text; oks := oks || (cnt = 1);
+  select public.generate_week_sessions(s_a, mon) into cnt;
+  names := names || 'Horario: no duplica sesiones al generar otra vez'::text; oks := oks || (cnt = 0);
+  select s.id into ses_g from public.sessions s where s.team_id = t_a1 and s.date = mon and s.time = '18:00';
+  select count(*) into cnt from public.bookings where session_id = ses_g and facility_id = fac and share = 2 and start_time = '18:00' and end_time = '19:30';
+  names := names || 'Horario: la sesión generada reserva su medio campo'::text; oks := oks || (cnt = 1);
+  update public.sessions set time = '17:00', duration_min = 60 where id = ses_g;
+  select count(*) into cnt from public.bookings where session_id = ses_g and start_time = '17:00' and end_time = '18:00';
+  names := names || 'La reserva sigue a la sesión cuando cambia la hora'::text; oks := oks || (cnt = 1);
+  insert into public.bookings (facility_id, match_id, share, date, start_time, end_time) values (vest, m_g, 1, mon, '00:00', '00:01') returning id into bk;
+  select count(*) into cnt from public.bookings where id = bk and share = 4 and date = mon + 2 and start_time = '10:30' and end_time = '12:25' and team_id = t_a1;
+  names := names || 'Reserva de partido: vestuario entero y franja del partido'::text; oks := oks || (cnt = 1);
+
+  perform set_config('request.jwt.claims', json_build_object('sub', u_e, 'role', 'authenticated')::text, true);
+  begin
+    insert into public.facilities (club_id, name) values (c_a, 'Campo pirata');
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Entrenador: no crea instalaciones'::text; oks := oks || ok_;
+  select count(*) into cnt from public.bookings where club_id = c_a;
+  names := names || 'Entrenador: ve la ocupación de todo el club'::text; oks := oks || (cnt = 2);
+  insert into public.bookings (facility_id, team_id, share, date, start_time, end_time) values (fac, t_a2, 2, mon, '18:00', '19:00') returning id into bk;
+  names := names || 'Entrenador: reserva para su equipo'::text; oks := oks || (bk is not null);
+  begin
+    insert into public.bookings (facility_id, team_id, date, start_time, end_time) values (fac, t_a1, mon, '20:00', '21:00');
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Entrenador: no reserva para otro equipo'::text; oks := oks || ok_;
+  begin
+    perform public.set_team_schedule(t_a1, '[]'::jsonb);
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Entrenador: no cambia el horario de otro equipo'::text; oks := oks || ok_;
+  select public.generate_week_sessions(s_a, mon + 7) into cnt;
+  names := names || 'Entrenador: generar no crea sesiones de otros equipos'::text; oks := oks || (cnt = 0);
+
+  perform set_config('request.jwt.claims', json_build_object('sub', u_k, 'role', 'authenticated')::text, true);
+  perform public.set_team_schedule(t_a1, (select schedule from public.teams where id = t_a1), '#0ea5e9');
+  select count(*) into cnt from public.teams where id = t_a1 and color = '#0ea5e9';
+  names := names || 'Coordinación: ajusta el horario de su equipo'::text; oks := oks || (cnt = 1);
+
+  perform set_config('request.jwt.claims', json_build_object('sub', u_b, 'role', 'authenticated')::text, true);
+  select count(*) into cnt from public.facilities where club_id = c_a;
+  select cnt + count(*) into cnt from public.bookings where club_id = c_a;
+  names := names || 'Otro club: no ve instalaciones ni reservas'::text; oks := oks || (cnt = 0);
 
   perform set_config('request.jwt.claims', json_build_object('sub', u_b, 'role', 'authenticated')::text, true);
   select count(*) into cnt from public.club_principles where club_id = c_a;

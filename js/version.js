@@ -1,7 +1,19 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.8.0';
+export const APP_VERSION = '0.9.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.9.0',
+    date: '26/11/2026',
+    items: [
+      'Calendario del club: sesiones, partidos y reservas de todos los equipos en vista semana y mes, con colores por equipo y filtros por equipo y categoría.',
+      'Instalaciones (Configuración → Instalaciones): campos que se reservan completos, por mitades o por cuartos, vestuarios y otras salas.',
+      'Reservas de campo desde el calendario para sesiones, partidos (con calentamiento y descanso) o usos sueltos, con aviso cuando no caben a la vez.',
+      'Horario base de cada equipo (días, horas y campo) que crea de una vez las sesiones vacías de la semana sin duplicar ni pisar días de partido.',
+      'Exportar el calendario a PDF (imprimir) y a .ics para Google Calendar, Outlook o el móvil.',
+      'Migración SQL 006_calendario.sql.'
+    ]
+  },
   {
     version: '0.8.0',
     date: '26/11/2026',

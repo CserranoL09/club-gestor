@@ -1,12 +1,13 @@
 // Configuración del club. Cada apartado está en su archivo (config-*.js).
 import { esc, permNote } from '../ui.js';
-import { S, permission, canInvite } from '../session.js';
+import { S, permission, canInvite, canManageFacilities } from '../session.js';
 
 const TABS = [
   ['identidad', 'Club', () => import('./config-identidad.js')],
   ['inicio', 'Página inicial', () => import('./config-inicio.js')],
   ['temporadas', 'Temporadas y equipos', () => import('./config-temporadas.js')],
-  ['personas', 'Personas', () => import('./config-personas.js')]
+  ['personas', 'Personas', () => import('./config-personas.js')],
+  ['instalaciones', 'Instalaciones', () => import('./config-instalaciones.js')]
 ];
 
 export async function render(el, ctx) {
@@ -15,7 +16,9 @@ export async function render(el, ctx) {
   const wanted = ctx.query.get('tab') === 'club' ? 'identidad' : ctx.query.get('tab');
   const tab = TABS.find((t) => t[0] === wanted) || (perm.ok ? TABS[0] : TABS[3]);
   // En Personas, la Coordinación puede invitar: no se muestra el aviso general.
-  const note = tab[0] === 'personas' && canInvite() ? '' : permNote(perm);
+  const facilitiesTab = tab[0] === 'instalaciones';
+  const note = (tab[0] === 'personas' && canInvite()) || (facilitiesTab && canManageFacilities()) ? ''
+    : facilitiesTab ? permNote({ ok: false, reason: 'Las instalaciones las mantienen la Dirección y la Coordinación.' }) : permNote(perm);
 
   el.innerHTML = `
     <div class="page-head">
@@ -28,5 +31,5 @@ export async function render(el, ctx) {
     </nav>
     <div id="cfgBody"></div>`;
   const mod = await tab[2]();
-  return mod.render(el.querySelector('#cfgBody'), { canEdit: perm.ok });
+  return mod.render(el.querySelector('#cfgBody'), { canEdit: facilitiesTab ? canManageFacilities() : perm.ok });
 }

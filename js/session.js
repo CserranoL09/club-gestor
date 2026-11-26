@@ -281,6 +281,10 @@ export function canSupervise(teamId = S.team?.id) { return isAdmin() || hasTeam(
 export function canEditTeam(teamId = S.team?.id) { return isAdmin() || hasTeam(teamId, ['entrenador']); }
 export function canPlanTeam(teamId = S.team?.id) { return canEditTeam(teamId) || hasTeam(teamId, ['preparador', 'porteros', 'ayudante']); }
 export function canMatchTeam(teamId = S.team?.id) { return canEditTeam(teamId) || hasTeam(teamId, ['ayudante']); }
+/** Horario y reservas del equipo: su cuerpo técnico y quien lo supervisa. */
+export function canScheduleTeam(teamId = S.team?.id) { return canPlanTeam(teamId) || canSupervise(teamId); }
+/** Instalaciones del club: Dirección y Coordinación. */
+export function canManageFacilities() { return isAdmin() || isCoordinator(); }
 /** ¿Puede invitar? Dirección a cualquiera; Coordinación al cuerpo técnico de sus equipos. */
 export function canInvite() { return isAdmin() || isCoordinator(); }
 

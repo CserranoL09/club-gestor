@@ -1,5 +1,14 @@
 # Novedades de Club Gestor
 
+## v0.9.0 · 26/11/2026 · Calendario del club e instalaciones (fase R5)
+
+- Calendario del club: sesiones, partidos y reservas de todos los equipos en vista semana y mes, con colores por equipo y filtros por equipo y categoría.
+- Instalaciones (Configuración → Instalaciones): campos que se reservan completos, por mitades o por cuartos, vestuarios y otras salas.
+- Reservas de campo desde el calendario para sesiones, partidos (con calentamiento y descanso) o usos sueltos, con aviso cuando no caben a la vez.
+- Horario base de cada equipo (días, horas y campo) que crea de una vez las sesiones vacías de la semana sin duplicar ni pisar días de partido.
+- Exportar el calendario a PDF (imprimir) y a .ics para Google Calendar, Outlook o el móvil.
+- Migración SQL 006_calendario.sql.
+
 ## v0.8.0 · 26/11/2026 · Metodología del club (fase R4)
 
 - Metodología del club (Dirección y Coordinación la mantienen; todo el club la consulta).
