@@ -1,5 +1,6 @@
 // Sesiones de entrenamiento (hoja SESIÓN): material, bloques, tiempos, periodo y microciclo.
 import { mondayOf } from './dates.js';
+import { microcycleAt } from './periodization.js';
 
 export const MATERIAL = ['Balones', 'Miniporterías', 'Vallas', 'Conos', 'Picas / Bases', 'Setas', 'Petos', 'Aros', 'Escaleras', 'Bosus', 'TRX',
   'Elásticos', 'Minibands', 'Discos', 'Steps', 'Fitball', 'Mancuernas', 'Barras'];
@@ -57,24 +58,17 @@ export const attStatus = (att, player) => att?.[player.id]?.status || player.sta
 export const participates = (att, player, blockId) => attStatus(att, player) === 'D' && att?.[player.id]?.tasks?.[blockId] !== false;
 
 /**
- * Periodo y microciclo de una fecha.
- * Con periodización: semana = lunes desde start_monday; periods [{from, to, key}] (índices de semana o fechas) y leyenda.
- * Sin periodización: microciclo = semana desde el inicio de la temporada.
+ * Periodo y microciclo de una fecha: de la periodización del equipo si existe
+ * (lib/periodization.js); si no, microciclo = semana desde el inicio de la temporada.
  */
 export function periodOf(dateStr, season, per) {
   const d = new Date(dateStr + 'T00:00:00');
   if (per?.start_monday) {
-    const start = new Date(per.start_monday + 'T00:00:00');
-    const week = Math.floor((mondayOf(d) - start) / (7 * 864e5));
-    const inRange = (p) => (typeof p.from === 'number' ? week >= p.from && week <= p.to : dateStr >= p.from && dateStr <= p.to);
-    const p = (per.periods || []).find(inRange);
-    const label = p ? (per.legend || []).find((l) => l.key === p.key)?.label || p.key : '';
-    const skipped = (per.micro_skip || []).filter((w) => w <= week).length;
-    const skip = (per.micro_skip || []).includes(week);
-    return { period: label, microcycle: week >= 0 && !skip ? (per.micro_start || 1) + week - skipped : null };
+    const mc = microcycleAt(per, d);
+    return { period: mc?.period || '', microcycle: mc?.number ?? null };
   }
   if (season?.start_date) {
-    const week = Math.floor((mondayOf(d) - mondayOf(new Date(season.start_date + 'T00:00:00'))) / (7 * 864e5));
+    const week = Math.round((mondayOf(d) - mondayOf(new Date(season.start_date + 'T00:00:00'))) / (7 * 864e5));
     return { period: '', microcycle: week >= 0 ? week + 1 : null };
   }
   return { period: '', microcycle: null };

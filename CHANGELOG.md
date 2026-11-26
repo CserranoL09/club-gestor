@@ -1,5 +1,16 @@
 # Novedades de Club Gestor
 
+## v0.12.0 · 26/11/2026 · Periodización (Prompt 7)
+
+- Periodización (hoja PERIORIZACIÓN): calendario de la temporada por semanas con meses y días calculados solos.
+- Se crea ya hecha: pretemporada, temporada, vacaciones de Navidad y Semana Santa, dos macrociclos, cuatro mesociclos y microciclos numerados.
+- Periodos, macrociclos y mesociclos se pintan tocando o arrastrando sobre las semanas, con leyenda editable (nombre y color).
+- Microciclo con número de inicio y opción de no contar las semanas de vacaciones.
+- Contenidos con nombre y área, marcados con ✖ o nivel 1–3 de intensidad.
+- Puntos de sesión y partido en cada día (se abren con un toque), semana actual resaltada e «Ir a hoy». En el móvil, vista por mes.
+- Sesiones e inicio toman el periodo y el microciclo de la periodización.
+- Migración SQL 009_periodizacion.sql (también ajustes de seguridad que recomienda Supabase).
+
 ## v0.11.0 · 26/11/2026 · Sesiones de entrenamiento (Prompt 6)
 
 - Sesiones de entrenamiento (hoja SESIÓN): lista por microciclo con filtros por mes y microciclo, duración, nº de tareas y asistencia.

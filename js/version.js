@@ -1,7 +1,21 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.11.0';
+export const APP_VERSION = '0.12.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.12.0',
+    date: '26/11/2026',
+    items: [
+      'Periodización (hoja PERIORIZACIÓN): calendario de la temporada por semanas con meses y días calculados solos.',
+      'Se crea ya hecha: pretemporada, temporada, vacaciones de Navidad y Semana Santa, dos macrociclos, cuatro mesociclos y microciclos numerados.',
+      'Periodos, macrociclos y mesociclos se pintan tocando o arrastrando sobre las semanas, con leyenda editable (nombre y color).',
+      'Microciclo con número de inicio y opción de no contar las semanas de vacaciones.',
+      'Contenidos con nombre y área, marcados con ✖ o nivel 1–3 de intensidad.',
+      'Puntos de sesión y partido en cada día (se abren con un toque), semana actual resaltada e «Ir a hoy». En el móvil, vista por mes.',
+      'Sesiones e inicio toman el periodo y el microciclo de la periodización.',
+      'Migración SQL 009_periodizacion.sql (también ajustes de seguridad que recomienda Supabase).'
+    ]
+  },
   {
     version: '0.11.0',
     date: '26/11/2026',

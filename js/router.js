@@ -24,7 +24,7 @@ const ROUTES = [
   { path: '/sesiones', key: 'sesiones', load: () => import('./modules/sesiones.js'), area: 'team' },
   { path: '/sesiones/:id', key: 'sesiones', load: () => import('./modules/sesiones.js'), area: 'team' },
   { path: '/planificacion', load: () => import('./modules/planificacion.js'), area: 'team' },
-  { path: '/periodizacion', key: 'periodizacion', area: 'team' },
+  { path: '/periodizacion', key: 'periodizacion', load: () => import('./modules/periodizacion.js'), area: 'team' },
   { path: '/macrociclo', key: 'macrociclo', area: 'team' },
   { path: '/macrociclo/:id', key: 'macrociclo', area: 'team' },
   { path: '/morfociclo', key: 'morfociclo', area: 'team' },
