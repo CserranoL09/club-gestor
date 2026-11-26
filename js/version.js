@@ -1,7 +1,19 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.7.0';
+export const APP_VERSION = '0.8.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.8.0',
+    date: '26/11/2026',
+    items: [
+      'Metodología del club (Dirección y Coordinación la mantienen; todo el club la consulta).',
+      'Modelo de juego: principios y subprincipios por fase (ataque, defensa, transiciones y ABP) y etapa, con texto e imagen. Ejemplo listo a partir del Excel.',
+      'Objetivos por categoría (técnicos, tácticos, condicionales y psicológicos); Sesiones muestra los de la categoría del equipo.',
+      'Biblioteca de tareas del club: tareas oficiales con fase, principio, categorías, jugadores y espacio; los entrenadores proponen y la Coordinación aprueba o rechaza con motivo.',
+      'Plantillas del club: sesión tipo, morfociclo y macrociclo por etapa. Los equipos nuevos reciben las predeterminadas y se pueden aplicar a los actuales.',
+      'Migración SQL 005_metodologia.sql.'
+    ]
+  },
   {
     version: '0.7.0',
     date: '26/11/2026',

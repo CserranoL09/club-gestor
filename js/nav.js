@@ -29,7 +29,8 @@ function teamItems() {
     { key: 'plantilla', href: '#/plantilla', icon: '👥', label: label('plantilla'), match: (p) => p === '/plantilla', hide: hidden.has('plantilla') },
     { key: 'estadisticas', href: '#/estadisticas', icon: '📊', label: label('estadisticas'), match: (p) => p === '/estadisticas' || p.startsWith('/jugador'), hide: hidden.has('estadisticas') },
     // Quien gestiona el club tiene la bandeja en el grupo del club.
-    { key: 'comentarios', href: '#/comentarios', icon: '💬', label: 'Comentarios', match: (p) => p === '/comentarios', hide: isClubManager() }
+    { key: 'comentarios', href: '#/comentarios', icon: '💬', label: 'Comentarios', match: (p) => p === '/comentarios', hide: isClubManager() },
+    { key: 'metodologia', href: '#/metodologia', icon: '📘', label: 'Metodología', match: (p) => p === '/metodologia', hide: isClubManager() }
   ];
   return items.filter((i) => !i.hide);
 }

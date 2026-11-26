@@ -1,5 +1,14 @@
 # Novedades de Club Gestor
 
+## v0.8.0 · 26/11/2026 · Metodología del club (fase R4)
+
+- Metodología del club (Dirección y Coordinación la mantienen; todo el club la consulta).
+- Modelo de juego: principios y subprincipios por fase (ataque, defensa, transiciones y ABP) y etapa, con texto e imagen. Ejemplo listo a partir del Excel.
+- Objetivos por categoría (técnicos, tácticos, condicionales y psicológicos); Sesiones muestra los de la categoría del equipo.
+- Biblioteca de tareas del club: tareas oficiales con fase, principio, categorías, jugadores y espacio; los entrenadores proponen y la Coordinación aprueba o rechaza con motivo.
+- Plantillas del club: sesión tipo, morfociclo y macrociclo por etapa. Los equipos nuevos reciben las predeterminadas y se pueden aplicar a los actuales.
+- Migración SQL 005_metodologia.sql.
+
 ## v0.7.0 · 26/11/2026 · Rediseño para clubes (fase R3)
 
 - Panel del club completo: una tarjeta por equipo con sesiones de la semana, asistencia, próximo partido, último resultado, informes pendientes, lesionados y comentarios.

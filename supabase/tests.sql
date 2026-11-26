@@ -20,7 +20,7 @@ declare
   u_y   uuid := gen_random_uuid();   -- 2.º entrenador / delegado del equipo A1
   c_a uuid; c_b uuid; s_a uuid; t_a1 uuid; t_a2 uuid; t_b uuid;
   cls uuid; code text; tok text; tok_p text; cmt uuid; ses uuid;
-  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text; c_root uuid;
+  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text; c_root uuid; pr uuid; tk uuid; tpl uuid; t_tpl uuid; st text;
   names text[] := '{}'; oks boolean[] := '{}';
 begin
   -- Usuarios de prueba (como si se hubieran registrado)
@@ -348,6 +348,88 @@ begin
   exception when others then ok_ := true;
   end;
   names := names || 'Otro club no puede crear equipos en el tuyo'::text; oks := oks || ok_;
+
+  -- ---------- Metodología del club (v0.8.0) ----------
+  perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
+  insert into public.club_principles (club_id, phase, title) values (c_a, 'ataque', 'Conservación') returning id into pr;
+  insert into public.club_principles (club_id, parent_id, phase, title) values (c_a, pr, 'ataque', 'Superioridad por dentro');
+  names := names || 'Dirección: crea principios y subprincipios'::text; oks := oks || true;
+  begin
+    insert into public.club_principles (club_id, parent_id, phase, title) values (c_a, pr, 'defensa', 'Mal colgado');
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Un subprincipio no puede colgar de otra fase'::text; oks := oks || ok_;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', u_k, 'role', 'authenticated')::text, true);
+  insert into public.category_objectives (club_id, category, objectives) values (c_a, 'Infantil', '{"tecnico":["Pase"]}');
+  names := names || 'Coordinación: define objetivos por categoría'::text; oks := oks || true;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', u_e, 'role', 'authenticated')::text, true);
+  select count(*) into cnt from public.club_principles where club_id = c_a;
+  names := names || 'Entrenador: consulta el modelo de juego'::text; oks := oks || (cnt = 2);
+  begin
+    insert into public.club_principles (club_id, phase, title) values (c_a, 'defensa', 'Pirata');
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Entrenador: no edita el modelo de juego'::text; oks := oks || ok_;
+  update public.category_objectives set notes = 'x' where club_id = c_a;
+  get diagnostics n_ = row_count;
+  names := names || 'Entrenador: no edita los objetivos'::text; oks := oks || (n_ = 0);
+  insert into public.task_library (club_id, title, status, block) values (c_a, 'Rondo 4x2', 'oficial', '{}') returning id, status into tk, st;
+  names := names || 'Entrenador: su tarea entra como propuesta'::text; oks := oks || (st = 'propuesta');
+  update public.task_library set title = 'Rondo 4x2 + 1' where id = tk;
+  get diagnostics n_ = row_count;
+  names := names || 'Entrenador: edita su propuesta'::text; oks := oks || (n_ = 1);
+  begin
+    update public.task_library set status = 'oficial' where id = tk;
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Entrenador: no puede aprobar su tarea'::text; oks := oks || ok_;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', u_k, 'role', 'authenticated')::text, true);
+  update public.task_library set status = 'oficial', review_note = 'Muy buena' where id = tk;
+  select count(*) into cnt from public.task_library where id = tk and status = 'oficial' and reviewed_by = u_k;
+  names := names || 'Coordinación: aprueba la tarea'::text; oks := oks || (cnt = 1);
+
+  perform set_config('request.jwt.claims', json_build_object('sub', u_e, 'role', 'authenticated')::text, true);
+  begin
+    update public.task_library set title = 'Cambio' where id = tk;
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Entrenador: no cambia una tarea ya oficial'::text; oks := oks || ok_;
+  delete from public.task_library where id = tk;
+  get diagnostics n_ = row_count;
+  names := names || 'Entrenador: no borra una tarea oficial'::text; oks := oks || (n_ = 0);
+  begin
+    perform public.apply_template(gen_random_uuid(), s_a);
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Entrenador: no aplica plantillas'::text; oks := oks || ok_;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);
+  insert into public.club_templates (club_id, kind, stage, name, data, is_default)
+  values (c_a, 'morfociclo', 'base', 'Morfociclo base del club', jsonb_build_object('match_day', 5, 'rows', '[{"label":"Principios","values":{"lun":"Recuperación"}}]'::jsonb), true) returning id into tpl;
+  insert into public.club_templates (club_id, kind, stage, name, data, is_default)
+  values (c_a, 'macrociclo', 'base', 'Porteros base', '{"weeks":30,"groups":[{"name":"Técnica","items":[{"name":"Blocajes","marks":{}}]}]}', true);
+  t_tpl := public.create_team(c_a, s_a, 'Infantil T', 'Infantil', 'f11');
+  select count(*) into cnt from public.morphocycles where team_id = t_tpl and name = 'Morfociclo base del club' and match_day = 5;
+  names := names || 'Nuevo equipo de fútbol base: con el morfociclo del club'::text; oks := oks || (cnt = 1);
+  select count(*) into cnt from public.macrocycles where team_id = t_tpl and name = 'Porteros base';
+  names := names || 'Nuevo equipo de fútbol base: con el macrociclo modelo'::text; oks := oks || (cnt = 1);
+  t_tpl := public.create_team(c_a, s_a, 'Juvenil T', 'Juvenil', 'f11');
+  select count(*) into cnt from public.morphocycles where team_id = t_tpl and name = 'Morfociclo estándar';
+  names := names || 'Equipo de rendimiento: no recibe la plantilla de base'::text; oks := oks || (cnt = 1);
+  select public.apply_template(tpl, s_a) into cnt;
+  names := names || 'Dirección: aplica la plantilla a los equipos de su etapa'::text; oks := oks || (cnt >= 1);
+
+  perform set_config('request.jwt.claims', json_build_object('sub', u_b, 'role', 'authenticated')::text, true);
+  select count(*) into cnt from public.club_principles where club_id = c_a;
+  names := names || 'Otro club: no ve tu metodología'::text; oks := oks || (cnt = 0);
 
   -- ---------- Sin sesión ----------
   execute 'reset role';

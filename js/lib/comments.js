@@ -72,6 +72,7 @@ export async function mountThread(el, { teamId, entity, entityId = null, section
             <div class="actions"><button class="btn small primary" type="submit">Responder</button><button class="btn small" type="button" data-cancel>Cancelar</button></div></form>` : ''}
       </li>`;
 
+    if (!el) return;                         // se ha cambiado de página mientras cargaba
     el.innerHTML = `
       <details class="card thread"${isOpen ? ' open' : ''} data-thread="${esc(entity)}">
         <summary><span>💬 ${esc(title)}</span> <span class="count">${roots.length}</span>${openCount ? ` <span class="pill warn">${openCount} ${openCount === 1 ? 'abierto' : 'abiertos'}</span>` : ''}</summary>
