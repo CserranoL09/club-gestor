@@ -10,6 +10,7 @@ import { sides, score } from '../lib/matches.js';
 import { ORIGINS } from '../lib/post.js';
 import { played, playerTotals } from '../lib/seasonstats.js';
 import { bars, donut, line, CAT } from '../lib/charts.js';
+import { printButton, wirePrint, printHead, screenCopy } from '../lib/print.js';
 
 export async function render(el, ctx) {
   const client = sb();
@@ -39,7 +40,7 @@ export async function render(el, ctx) {
     <div class="page-head">
       <div><p class="eyebrow">${esc(team?.name || '')}</p><h1><span class="shirt" aria-hidden="true">${p.number ?? '–'}</span> ${esc(p.name)}</h1>
         <p><span class="status-btn st-${esc(p.status)} static">${esc(p.status)} <small>${label}</small></span>${p.active ? '' : ' <span class="pill">Inactivo</span>'}</p></div>
-      <div class="actions no-print"><a class="btn" href="#/plantilla">← Plantilla</a><a class="btn" href="#/estadisticas">Estadísticas</a><button class="btn" type="button" data-print>Imprimir</button></div>
+      <div class="actions no-print"><a class="btn" href="#/plantilla">← Plantilla</a><a class="btn" href="#/estadisticas">Estadísticas</a>${printButton()}</div>
     </div>
     <div class="grid-2">
       <section class="card">
@@ -86,6 +87,6 @@ export async function render(el, ctx) {
             <td>${r?.called ? (r.starter ? 'Titular' : 'Suplente') : 'No'}</td><td>${r?.called ? x.minutes : ''}</td><td>${r ? ORIGINS.reduce((s, o) => s + (r.gf[o] || 0), 0) || '' : ''}</td><td>${r?.assists || ''}</td><td>${r?.yellow || ''}</td><td>${r?.red || ''}</td><td>${x.avg != null ? x.avg.toFixed(1) : ''}</td></tr>`; }).join('')}</tbody>
       </table></div></section>` : ''}
     <div id="thread" class="no-print"></div>`;
-  el.querySelector('[data-print]').addEventListener('click', () => window.print());
+  wirePrint(el, () => ({ title: `Ficha ${p.name} ${team?.name || ''}`, html: printHead({ title: `${p.number != null ? p.number + '. ' : ''}${p.name}`, team, sub: `Ficha del jugador · ${esc(pos)}` }) + `<div class="pr-screen">${screenCopy(el)}</div>` }));
   await mountThread(el.querySelector('#thread'), { teamId: p.team_id, entity: 'player', entityId: p.id, title: `Comentarios sobre ${p.name}` });
 }

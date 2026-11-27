@@ -12,6 +12,7 @@ import { uploadClubImage, signedUrls } from '../lib/images.js';
 import { objectivesFor, AREAS, canEditMethodology } from '../lib/methodology.js';
 import { STATUS, NEXT_STATUS } from '../lib/players.js';
 import { dayGuide, guideHTML } from '../lib/morpho.js';
+import { printButton, wirePrint, printHead, kv, bar, txt } from '../lib/print.js';
 import {
   MATERIAL, OBJECTIVES, STAFF, ROLES, BLOCK_KINDS, newBlock, blockTime, totalTime, blockShort,
   attStatus, participates, dayKey, fromLibrary, toLibrary
@@ -209,6 +210,43 @@ export async function render(el, ctx) {
       <p class="big-line" data-total2>Tiempo total: <strong>${totalTime(blocks)} min</strong></p>`;
   }
 
+
+  // ---------------------------------------------------------------- impresión (hoja SESIÓN)
+  function printView() {
+    const total = totalTime(blocks);
+    const c = counts();
+    const title = `Sesión${s.number ? ' ' + s.number : ''}`;
+    const st = (b) => b.structure || {};
+    const roles = (b) => ROLES.filter(([r]) => b.roles?.[r]).map(([r, l]) => `<b>${l}:</b> ${esc(b.roles[r])}`).join(' · ');
+    const matList = MATERIAL.filter((m) => mat[m] != null).map((m) => `${esc(m)}${mat[m] !== '' && mat[m] != null ? ` <b>${esc(mat[m])}</b>` : ''}`);
+    if (mat.otros) matList.push(`Otros: ${esc(mat.otros)}`);
+    const scale = Math.max(total, s.duration_min || 0) || 1;
+    const html = `
+      ${printHead({ title, team, sub: `${esc(fmt(s.date + 'T00:00:00'))}${s.time ? ' · ' + esc(s.time.slice(0, 5)) : ''}${s.duration_min ? ` · ${s.duration_min} min` : ''}` })}
+      ${bar('1. Datos generales')}
+      ${kv([['Equipo', esc(team.name)], ['Categoría', esc(team.category || '')], ['Periodo', esc(s.period || '')], ['Microciclo', s.microcycle ?? ''],
+        ['Sesión nº', s.number ?? ''], ['Fecha', esc(fmt(s.date + 'T00:00:00'))], ['Hora', esc((s.time || '').slice(0, 5))], ['Duración', s.duration_min ? `${s.duration_min} min` : '']])}
+      ${blocks.length ? `<div class="pr-dist">${blocks.map((b, i) => `<span class="${b.kind === 'task' ? '' : 'pr-muted'}" style="width:${(blockTime(b) / scale) * 100}%;background:color-mix(in srgb, var(--accent) ${b.kind === 'task' ? 55 : 25}%, #fff)">${esc(blockShort(blocks, i))}</span>`).join('')}</div>` : ''}
+      ${bar('2. Cuerpo técnico')}
+      ${kv(STAFF.map(([k, l]) => [l, esc(staff[k] || '')]), 2)}
+      ${bar('3. Objetivos')}
+      <table class="pr-t"><thead><tr>${OBJECTIVES.map(([, l]) => `<th>${l}</th>`).join('')}</tr></thead><tbody><tr>${OBJECTIVES.map(([k]) => `<td>${txt(obj[k])}</td>`).join('')}</tr></tbody></table>
+      ${bar('4. Material')}<p>${matList.join(' · ') || '<span class="pr-empty">—</span>'}</p>
+      ${bar('5. Asistencia', `D ${c.D} · L ${c.L} · A ${c.A}`)}
+      <ul class="pr-att">${players.map((p) => { const k = attStatus(att, p); return `<li><span class="pr-st ${k}">${k}</span>${p.number != null ? p.number + '. ' : ''}${esc(p.name)}</li>`; }).join('')}</ul>
+      ${bar('6. Tareas', `Tiempo total ${total} min${s.duration_min ? ` de ${s.duration_min}` : ''}`)}
+      ${blocks.map((b, i) => { const img = b.image_path ? images[b.image_path] : ''; const t = st(b);
+        const struct = [t.series > 1 ? `${t.series} × ${t.duration ?? 0}′ (rec. ${t.rest ?? 0}′)` : `${t.duration ?? 0}′`, t.space && `Espacio ${esc(t.space)}`, t.players && `Jugadores ${esc(t.players)}`, t.goalkeepers && `Porteros ${esc(t.goalkeepers)}`].filter(Boolean).join(' · ');
+        const rows = [['Desarrollo', b.description], ['Variantes', (b.variants || []).filter(Boolean).map((v) => '• ' + v).join('\n')], ['Obj. ofensivos', b.obj_off], ['Obj. defensivos', b.obj_def]].filter(([, v]) => v);
+        return `<article class="pr-task">
+          <header><b>${esc(blockShort(blocks, i))} · ${esc(b.title || BLOCK_KINDS[b.kind])}</b><span class="pr-muted">${BLOCK_KINDS[b.kind]}</span><span class="pr-time">${blockTime(b)} min</span></header>
+          <div class="pr-struct">${struct}${roles(b) ? ` <br>${roles(b)}` : ''}</div>
+          <div class="pr-tbody${img ? '' : ' noimg'}"><dl>${rows.map(([l, v]) => `<dt>${l}</dt><dd>${txt(v)}</dd>`).join('') || '<dd class="pr-empty">Sin desarrollo.</dd>'}</dl>${img ? `<img src="${esc(img)}" alt="">` : ''}</div>
+        </article>`; }).join('') || '<p class="pr-empty">Sin tareas.</p>'}
+      ${bar('7. Observaciones')}<p>${txt(s.notes)}</p>`;
+    return { title: `${title} ${s.date} ${team.name}`, html };
+  }
+
   let sugg = [];
   function draw() {
     sugg = [
@@ -227,7 +265,7 @@ export async function render(el, ctx) {
           ${prev ? `<a class="btn icon-btn" href="#/sesiones/${esc(prev.id)}" aria-label="Sesión anterior">‹</a>` : ''}
           <a class="btn" href="#/sesiones">Sesiones</a>
           ${next ? `<a class="btn icon-btn" href="#/sesiones/${esc(next.id)}" aria-label="Sesión siguiente">›</a>` : ''}
-          <button class="btn" type="button" data-print>Imprimir</button>
+          ${printButton()}
         </div>
       </div>
       ${note}
@@ -260,7 +298,7 @@ export async function render(el, ctx) {
   // ---------------------------------------------------------------- eventos
   function wire() {
     el.querySelectorAll('details.ses-sec').forEach((d) => d.addEventListener('toggle', () => { if (d.open) openSecs.add(d.dataset.sec); else openSecs.delete(d.dataset.sec); }));
-    el.querySelector('[data-print]').addEventListener('click', () => { el.querySelectorAll('details.ses-sec').forEach((d) => { d.open = true; }); window.print(); });
+    wirePrint(el, () => printView());
     if (!anyEdit) return;
 
     // Datos generales

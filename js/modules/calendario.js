@@ -5,6 +5,7 @@ import { esc, toast, busy, ask, errMsg } from '../ui.js';
 import { sb } from '../supabase.js';
 import { S, visibleTeams, teamsOfSeason, canPlanTeam, canEditTeam, canMatchTeam, canScheduleTeam, canManageFacilities, selectTeam } from '../session.js';
 import { MONTHS, DAYS, addDays, fmt } from '../lib/dates.js';
+import { printButton, wirePrint, printHead, screenCopy } from '../lib/print.js';
 import { SHORT_DAYS, SHARES, iso, parseISO, mins, hhmm, short, shareName, teamColor, rangeOf, matchEnd, findConflicts, buildICS, download } from '../lib/calendar.js';
 
 const VIEWS = [['semana', 'Semana'], ['mes', 'Mes'], ['horarios', 'Horarios']];
@@ -33,7 +34,7 @@ export async function render(el, ctx) {
     <div class="page-head">
       <div><h1>📅 Calendario</h1><p>${esc(S.club.name)} · ${esc(S.season.name)}</p></div>
       <div class="actions no-print">
-        ${view !== 'horarios' ? `<button class="btn" type="button" data-print>Imprimir / PDF</button><button class="btn" type="button" data-ics>Descargar .ics</button>` : ''}
+        ${view !== 'horarios' ? `${printButton()}<button class="btn" type="button" data-ics>Descargar .ics</button>` : ''}
       </div>
     </div>
     <nav class="tabs page-tabs no-print" aria-label="Vistas del calendario">
@@ -166,7 +167,7 @@ export async function render(el, ctx) {
 
   // ---------- Acciones
   body.querySelector('[data-cat]')?.addEventListener('change', (ev) => { location.hash = link({ cat: ev.target.value, equipos: '' }); });
-  el.querySelector('[data-print]')?.addEventListener('click', () => window.print());
+  wirePrint(el, () => ({ title: `Calendario ${S.club.name} ${title}`, html: printHead({ title: 'Calendario', team: S.team, sub: esc(title) }) + `<div class="pr-screen">${screenCopy(el)}</div>`, landscape: true }));
   el.querySelector('[data-ics]')?.addEventListener('click', () => {
     const list = visible.map((e) => ({
       uid: `${e.kind}-${e.id}`, date: e.date, start: e.start || null, end: e.end || null,

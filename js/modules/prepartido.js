@@ -6,7 +6,8 @@ import { S, canMatchTeam } from '../session.js';
 import { autosaver } from '../store.js';
 import { fmt } from '../lib/dates.js';
 import { mountThread } from '../lib/comments.js';
-import { STATUS } from '../lib/players.js';
+import { STATUS, POSITIONS } from '../lib/players.js';
+import { printButton, wirePrint, printHead, bar, txt } from '../lib/print.js';
 import { SYSTEMS, starters, squadMax, sides, score } from '../lib/matches.js';
 
 const POS_ORDER = { POR: 0, DEF: 1, LAT: 2, MC: 3, EXT: 4, DEL: 5 };
@@ -51,7 +52,7 @@ export async function render(el, ctx) {
       <div class="page-head">
         <div><p class="eyebrow">${m.matchday != null ? `Jornada ${m.matchday} · ` : ''}${m.date ? esc(fmt(new Date(m.date + 'T00:00:00'))) : 'Sin fecha'}${m.time ? ` · ${esc(m.time.slice(0, 5))}` : ''}</p>
           <h1 class="match-title"><span class="${m.is_home ? 'us' : ''}">${esc(home)}</span> <span class="vs">${esc(score(m)) || 'vs'}</span> <span class="${m.is_home ? '' : 'us'}">${esc(away)}</span></h1></div>
-        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a><button class="btn" type="button" data-print>Imprimir convocatoria</button></div>
+        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a>${printButton([['list', 'Convocatoria'], ['system', 'Convocatoria con el sistema'], ['full', 'Prepartido completo (cuerpo técnico)']])}</div>
       </div>
       <nav class="tabs page-tabs no-print" aria-label="Partido">
         <a class="tab" href="#/partidos/${esc(m.id)}/prepartido" aria-current="page">Prepartido</a>
@@ -146,6 +147,49 @@ export async function render(el, ctx) {
       </section>`;
   }
 
+
+  // ---------------------------------------------------------------- impresión: convocatoria para el vestuario
+  function pitchSVG() {
+    const pos = layout();
+    const firsts = pos.map((t) => t.p.name.split(' ')[0]);
+    const short = (p) => { const f = p.name.split(' ')[0]; return (firsts.filter((x) => x === f).length > 1 ? p.name : f).slice(0, 14); };
+    return `<svg class="pr-pitch" viewBox="0 0 100 140" role="img" aria-label="Sistema ${esc(m.system)}">
+      <g fill="none" stroke="#2f7d4a" stroke-width=".6"><rect x="1" y="1" width="98" height="138" rx="2" fill="#eef7f0"/>
+      <line x1="1" y1="70" x2="99" y2="70"/><circle cx="50" cy="70" r="10"/>
+      <rect x="22" y="1" width="56" height="20"/><rect x="36" y="1" width="28" height="7"/><rect x="22" y="119" width="56" height="20"/><rect x="36" y="132" width="28" height="7"/></g>
+      ${pos.map((t) => `<g transform="translate(${t.x} ${t.y * 1.4})"><circle r="5.4" fill="${t.p.position === 'POR' ? '#f2a600' : 'var(--accent)'}" stroke="#fff" stroke-width=".8"/>
+        <text text-anchor="middle" dy="1.9" font-size="5.2" font-weight="800" fill="${t.p.position === 'POR' ? '#111' : 'var(--accent-ink)'}">${t.p.number ?? ''}</text>
+        <text text-anchor="middle" dy="10.5" font-size="3.9" font-weight="700" fill="#111">${esc(short(t.p))}</text></g>`).join('')}
+    </svg>`;
+  }
+  function printView(opt) {
+    const [home, away] = sides(m, team.name);
+    const withSystem = opt === 'system' || opt === 'full';
+    const list = m.squad.map((s) => ({ s, p: byId.get(s.player_id) })).filter((x) => x.p);
+    const rows = (arr) => arr.map(({ s, p }) => `<tr><td class="dorsal">${p.number ?? '–'}</td><td>${esc(p.name)}</td><td>${esc(POSITIONS.find(([k]) => k === p.position)?.[1] || '')}</td>${withSystem ? `<td class="c">${s.starter ? 'Titular' : ''}</td>` : ''}</tr>`).join('');
+    const ordered = withSystem ? [...list.filter((x) => x.s.starter), ...list.filter((x) => !x.s.starter)] : list;
+    const date = m.date ? fmt(new Date(m.date + 'T00:00:00')) : '';
+    const html = `
+      ${printHead({ title: opt === 'full' ? 'Prepartido' : 'Convocatoria', team, sub: `${m.matchday != null ? `Jornada ${m.matchday} · ` : ''}${esc(date)}` })}
+      <p class="pr-match">${esc(home)}<span class="vs">vs</span>${esc(away)}</p>
+      <div class="pr-call">
+        <div class="big"><small>Citación</small><strong>${esc((m.call_time || '').slice(0, 5)) || '—'}</strong></div>
+        <div><small>Partido</small><strong>${esc(date) || '—'}${m.time ? ' · ' + esc(m.time.slice(0, 5)) : ''}</strong></div>
+        <div><small>Lugar</small><strong>${esc(m.venue || (m.is_home ? 'En casa' : 'Fuera'))}</strong></div>
+      </div>
+      ${bar('Convocados', `${list.length} jugadores${withSystem ? ` · sistema ${esc(m.system)}` : ''}`)}
+      <div class="pr-callgrid${withSystem && list.some((x) => x.s.starter) ? '' : ' solo'}">
+        <table class="pr-t pr-list"><thead><tr><th>Nº</th><th>Jugador</th><th>Posición</th>${withSystem ? '<th></th>' : ''}</tr></thead><tbody>${rows(ordered) || '<tr><td colspan="4" class="pr-empty">Nadie convocado todavía.</td></tr>'}</tbody></table>
+        ${withSystem && list.some((x) => x.s.starter) ? `<div>${pitchSVG()}</div>` : ''}
+      </div>
+      ${opt === 'full' ? `
+        ${bar('Planteamiento')}
+        <div class="pr-cols" style="--n:3">${[['Ataque', m.plan.attack], ['Defensa', m.plan.defense], ['Rival', m.plan.rival]].map(([l, v]) => `<div class="pr-box"><h4>${l}</h4><p>${txt(v)}</p></div>`).join('')}</div>
+        ${bar('Balón parado y observaciones')}
+        <div class="pr-cols" style="--n:3">${[['ABP a favor', m.abp_for], ['ABP en contra', m.abp_against], ['Observaciones', m.pre_notes]].map(([l, v]) => `<div class="pr-box"><h4>${l}</h4><p>${txt(v)}</p></div>`).join('')}</div>` : ''}`;
+    return { title: `Convocatoria J${m.matchday ?? ''} ${home} - ${away}`, html };
+  }
+
   function draw() {
     el.innerHTML = `${header()}
       ${canEdit ? '' : permNote({ ok: false, reason: `Solo ver y comentar: el prepartido lo prepara el cuerpo técnico de ${team.name}.` })}
@@ -160,7 +204,7 @@ export async function render(el, ctx) {
 
   // ---------------------------------------------------------------- eventos
   function wire() {
-    el.querySelector('[data-print]').addEventListener('click', () => window.print());
+    wirePrint(el, (opt) => printView(opt));
     if (!canEdit) return;
     el.querySelectorAll('[data-f]').forEach((inp) => inp.addEventListener('change', () => {
       const k = inp.dataset.f;
@@ -177,7 +221,7 @@ export async function render(el, ctx) {
         el.querySelector('.page-head').replaceWith(tmp.querySelector('.page-head'));
         const [h, a] = sides(m, team.name);
         el.querySelector('[data-home]').textContent = h; el.querySelector('[data-away]').textContent = a;
-        el.querySelector('[data-print]').addEventListener('click', () => window.print());
+        wirePrint(el.querySelector('.page-head'), (opt) => printView(opt));
       }
     }));
     el.querySelectorAll('[data-plan]').forEach((ta) => ta.addEventListener('input', () => { m.plan = { ...m.plan, [ta.dataset.plan]: ta.value }; saver.set({ plan: m.plan }); }));

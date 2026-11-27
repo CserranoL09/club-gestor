@@ -1,7 +1,19 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.18.0';
+export const APP_VERSION = '0.19.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.19.0',
+    date: '27/11/2026',
+    items: [
+      'Imprimir / Guardar PDF en todos los módulos con una vista limpia: fondo blanco, escudo y colores del club, sin botones ni comentarios, y el nombre del PDF ya puesto (por ejemplo «Sesión 12 2026-10-14 Alevín A»).',
+      'Ficha de sesión como la hoja SESIÓN del Excel en 1–2 páginas: datos, cuerpo técnico, objetivos, material, asistencia, cada tarea con su estructura, desarrollo, objetivos, roles y la imagen del ejercicio, y observaciones.',
+      'Periodización, macrociclo y morfociclo en A4 apaisado y ajustados al ancho de la hoja, con la leyenda de colores.',
+      'Convocatoria para el vestuario o para enviar en PDF: partido, citación destacada, lugar y lista de convocados; opcionalmente con el sistema dibujado en el campo. También el prepartido completo para el cuerpo técnico.',
+      'Acta del partido, informe postpartido, estadísticas (la vista que tengas abierta), plantilla y ficha del jugador imprimibles.',
+      'Junto al botón se explica cómo guardar en PDF en Chrome y en Safari.'
+    ]
+  },
   {
     version: '0.18.0',
     date: '27/11/2026',

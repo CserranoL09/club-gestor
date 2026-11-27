@@ -1,5 +1,14 @@
 # Novedades de Club Gestor
 
+## v0.19.0 · 27/11/2026 · Imprimir y PDF (Prompt 14)
+
+- Imprimir / Guardar PDF en todos los módulos con una vista limpia: fondo blanco, escudo y colores del club, sin botones ni comentarios, y el nombre del PDF ya puesto (por ejemplo «Sesión 12 2026-10-14 Alevín A»).
+- Ficha de sesión como la hoja SESIÓN del Excel en 1–2 páginas: datos, cuerpo técnico, objetivos, material, asistencia, cada tarea con su estructura, desarrollo, objetivos, roles y la imagen del ejercicio, y observaciones.
+- Periodización, macrociclo y morfociclo en A4 apaisado y ajustados al ancho de la hoja, con la leyenda de colores.
+- Convocatoria para el vestuario o para enviar en PDF: partido, citación destacada, lugar y lista de convocados; opcionalmente con el sistema dibujado en el campo. También el prepartido completo para el cuerpo técnico.
+- Acta del partido, informe postpartido, estadísticas (la vista que tengas abierta), plantilla y ficha del jugador imprimibles.
+- Junto al botón se explica cómo guardar en PDF en Chrome y en Safari.
+
 ## v0.18.0 · 27/11/2026 · Estadísticas de temporada (Prompt 13)
 
 - Estadísticas de temporada por jugador: convocatorias, titularidades, minutos y % de los posibles, goles por origen, asistencias, goles en contra estando en el campo, tarjetas, asistencia a entrenamientos (% y D/L/A) y nota media del postpartido. Se ordena tocando la columna y se filtra por jornadas o fechas; exportable a Excel.

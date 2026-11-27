@@ -8,6 +8,7 @@ import { autosaver } from '../store.js';
 import { fmt } from '../lib/dates.js';
 import { mountThread } from '../lib/comments.js';
 import { sides } from '../lib/matches.js';
+import { printButton, wirePrint, printHead, kv, bar, txt } from '../lib/print.js';
 import { EVENT_TYPES, ORIGINS, DEFAULT_COUNTERS, STAT_FIELDS, sortEvents, scoreOf, computeStats, onField, clockMinute } from '../lib/acta.js';
 
 const CLOCK_KEY = (id) => `clubgestor:clock:${id}`;
@@ -127,13 +128,43 @@ export async function render(el, ctx) {
         <label for="ac_list">Un contador por línea</label><textarea id="ac_list" data-clist rows="4">${esc(m.counters.items.map((c) => c.name).join('\n'))}</textarea></details>` : ''}`;
   }
 
+
+  // ---------------------------------------------------------------- impresión (hoja PARTIDO)
+  function printView() {
+    const [home, away] = sides(m, team.name);
+    const sc = scoreOf(m.events);
+    const [h, a] = m.is_home ? [sc.for, sc.against] : [sc.against, sc.for];
+    const tot = { goals: 0, assists: 0, yellow: 0, red: 0, minutes: 0 };
+    const date = m.date ? fmt(new Date(m.date + 'T00:00:00')) : '';
+    const html = `
+      ${printHead({ title: 'Acta del partido', team, sub: `${m.matchday != null ? `Jornada ${m.matchday} · ` : ''}${esc(date)}` })}
+      <p class="pr-score">${esc(home)}<b>${h} – ${a}</b>${esc(away)}</p>
+      ${kv([['Jornada', m.matchday ?? ''], ['Fecha', esc(date)], ['Hora', esc((m.time || '').slice(0, 5))], ['Duración', `${periods} × ${perMin} = ${total} min`], ['Lugar', esc(m.venue || '')], ['Sistema', esc(m.system || '')]], 3)}
+      <div class="pr-cols" style="--n:2">
+        <div>${bar('Eventos', `${m.events.length}`)}
+          <table class="pr-t"><thead><tr><th>Min</th><th>Evento</th><th>Jugador</th><th>Origen</th></tr></thead><tbody>${sortEvents(m.events).map((e) => { const t = EVENT_TYPES[e.type];
+            const who = e.type === 'sub' ? `${esc(name(e.player_id))} <span class="pr-muted">por</span> ${esc(name(e.player_out_id))}` : e.type === 'goal_against' ? 'Rival' : esc(name(e.player_id));
+            return `<tr><td class="n">${e.minute ?? '—'}′</td><td>${t.icon} ${t.label}</td><td>${who}${e.type === 'goal' && e.assist_id ? `<br><small class="pr-muted">asist. ${esc(name(e.assist_id))}</small>` : ''}${e.note ? `<br><small class="pr-muted">${esc(e.note)}</small>` : ''}</td><td>${esc(e.origin || '')}</td></tr>`; }).join('') || '<tr><td colspan="4" class="pr-empty">Sin eventos.</td></tr>'}</tbody></table></div>
+        <div>${bar('Convocados')}
+          <table class="pr-t"><thead><tr><th>Nº</th><th>Jugador</th>${STAT_FIELDS.map(([, l]) => `<th>${l}</th>`).join('')}</tr></thead>
+            <tbody>${squad.map((s) => { const p = byId.get(s.player_id); const st = stats[s.player_id] || {}; for (const [k] of STAT_FIELDS) tot[k] += st[k] || 0;
+              return `<tr><td class="n">${p.number ?? ''}</td><td>${esc(p.name)}${s.starter ? ' <small class="pr-muted">T</small>' : ''}</td>${STAT_FIELDS.map(([k]) => `<td class="n">${st[k] || ''}</td>`).join('')}</tr>`; }).join('')}</tbody>
+            <tfoot><tr><td></td><th>Total</th>${STAT_FIELDS.map(([k]) => `<td class="n">${k === 'minutes' ? '' : tot[k]}</td>`).join('')}</tr></tfoot></table></div>
+      </div>
+      ${bar('Anotaciones')}
+      <p>${m.counters.items.map((c) => `${esc(c.name)} <b>${c.value || 0}</b>`).join(' · ')}</p>
+      <p>${txt(m.annotations)}</p>
+      ${bar('Observaciones')}<p>${txt(m.notes)}</p>`;
+    return { title: `Acta J${m.matchday ?? ''} ${home} ${h}-${a} ${away}`, html };
+  }
+
   function draw() {
     const [home, away] = sides(m, team.name);
     el.innerHTML = `
       <div class="page-head acta-head">
         <div><p class="eyebrow">${m.matchday != null ? `Jornada ${m.matchday} · ` : ''}${m.date ? esc(fmt(new Date(m.date + 'T00:00:00'))) : 'Sin fecha'}</p>
           <h1 class="match-title"><span class="${m.is_home ? 'us' : ''}">${esc(home)}</span> <span class="vs">vs</span> <span class="${m.is_home ? '' : 'us'}">${esc(away)}</span></h1></div>
-        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a><button class="btn" type="button" data-print>Imprimir</button></div>
+        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a>${printButton()}</div>
       </div>
       <nav class="tabs page-tabs no-print" aria-label="Partido">
         <a class="tab" href="#/partidos/${esc(m.id)}/prepartido">Prepartido</a>
@@ -275,7 +306,7 @@ export async function render(el, ctx) {
   }
 
   function wire() {
-    el.querySelector('[data-print]').addEventListener('click', () => window.print());
+    wirePrint(el, () => printView());
     wireClock();
     wireLists();
     if (!canEdit) return;

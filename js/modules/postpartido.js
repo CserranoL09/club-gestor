@@ -8,6 +8,7 @@ import { fmt } from '../lib/dates.js';
 import { mountThread } from '../lib/comments.js';
 import { POSITIONS, FEET } from '../lib/players.js';
 import { sides, score } from '../lib/matches.js';
+import { printButton, wirePrint, printHead, bar, txt } from '../lib/print.js';
 import { COLLECTIVE, INDIVIDUAL, ORIGINS, ORIGIN_SHORT, playerRows } from '../lib/post.js';
 
 const open = new Set(['jugadores', 'colectiva']);
@@ -107,6 +108,46 @@ export async function render(el, ctx) {
       ${canEdit ? '<button class="btn small mt" type="button" data-sadd>+ Jugador rival</button>' : ''}`;
   }
 
+
+  // ---------------------------------------------------------------- impresión (hoja POSTPARTIDO)
+  function printView() {
+    const [home, away] = sides(m, team.name);
+    const rows = playerRows(players, m, total);
+    const called = rows.filter((r) => r.called);
+    const acts = [...INDIVIDUAL.attack.actions, ...INDIVIDUAL.defense.actions];
+    const anyScore = called.some((r) => Object.values(post.individual.scores[r.p.id] || {}).some(Boolean));
+    const sum = (f) => rows.reduce((n, r) => n + f(r), 0);
+    const posName = (k) => POSITIONS.find(([x]) => x === k)?.[1] || '';
+    const footName = (k) => FEET.find(([x]) => x === k)?.[1] || '';
+    const html = `
+      ${printHead({ title: 'Informe postpartido', team, sub: `${m.matchday != null ? `Jornada ${m.matchday} · ` : ''}${m.date ? esc(fmt(new Date(m.date + 'T00:00:00'))) : ''} · ${esc(home)} <b>${esc(score(m)) || 'vs'}</b> ${esc(away)}${m.report_done ? ' · terminado' : ''}` })}
+      ${bar('1–2. Convocatoria, goles y tarjetas', `${total} min`)}
+      <table class="pr-t pr-stats">
+        <thead>
+          <tr><th rowspan="2">Jugador</th><th colspan="4">Convocatoria</th><th colspan="5">Goles a favor</th><th colspan="4">Goles en contra</th><th colspan="2">Tarjetas</th></tr>
+          <tr><th>Disp.</th><th>Conv.</th><th>Tit.</th><th>Min</th>${ORIGINS.map((o) => `<th>${ORIGIN_SHORT[o]}</th>`).join('')}<th>Asis</th>${ORIGINS.map((o) => `<th>${ORIGIN_SHORT[o]}</th>`).join('')}<th>TA</th><th>TR</th></tr>
+        </thead>
+        <tbody>${rows.map((r) => `<tr${r.called ? '' : ' class="pr-muted"'}><td><b>${r.p.number ?? '–'}</b> ${esc(r.p.name)}</td>
+          <td class="c">${r.available ? 'D' : 'No'}</td><td class="c">${r.called ? 'C' : 'No'}</td><td class="c">${r.called ? (r.starter ? 'T' : 'S') : ''}</td><td class="n">${r.called ? r.minutes : ''}</td>
+          ${ORIGINS.map((o) => `<td class="n">${r.gf[o] || ''}</td>`).join('')}<td class="n">${r.assists || ''}</td>${ORIGINS.map((o) => `<td class="n">${r.gc[o] || ''}</td>`).join('')}<td class="n">${r.yellow || ''}</td><td class="n">${r.red || ''}</td></tr>`).join('')}</tbody>
+        <tfoot><tr><th>Total</th><td class="n">${sum((r) => +r.available)}</td><td class="n">${sum((r) => +r.called)}</td><td class="n">${sum((r) => +(r.called && r.starter))}</td><td></td>
+          ${ORIGINS.map((o) => `<td class="n">${sum((r) => r.gf[o])}</td>`).join('')}<td class="n">${sum((r) => r.assists)}</td>${ORIGINS.map(() => '<td></td>').join('')}<td class="n">${sum((r) => r.yellow)}</td><td class="n">${sum((r) => r.red)}</td></tr></tfoot>
+      </table>
+      ${bar('3. Evaluación colectiva')}
+      ${Object.values(COLLECTIVE).map((d) => `<h3 class="pr-sub">${d.label}</h3><div class="pr-cols" style="--n:3">${d.phases.map(([k, l]) => { const v = post.collective[k] || {};
+        return `<div class="pr-box"><h4>${l} ${v.score ? `<span class="pr-lv">${v.score}</span>` : ''}</h4><p>${txt(v.text)}</p></div>`; }).join('')}</div>`).join('')}
+      ${bar('4. Evaluación individual')}
+      ${Object.values(INDIVIDUAL).map((d) => `<h3 class="pr-sub">${d.label}</h3><div class="pr-cols" style="--n:2">${d.actions.filter(([k]) => post.individual.texts[k]).map(([k, l]) => `<div class="pr-box"><h4>${l}</h4><p>${txt(post.individual.texts[k])}</p></div>`).join('') || '<p class="pr-empty">—</p>'}</div>`).join('')}
+      ${anyScore ? `<h3 class="pr-sub">Notas por jugador (1–5)</h3>
+        <table class="pr-t pr-stats"><thead><tr><th>Jugador</th>${acts.map(([, l]) => `<th>${l.slice(0, 6)}</th>`).join('')}<th>Media</th></tr></thead>
+        <tbody>${called.map((r) => { const sc = post.individual.scores[r.p.id] || {}; const vals = acts.map(([k]) => +sc[k]).filter(Boolean);
+          return `<tr><td><b>${r.p.number ?? '–'}</b> ${esc(r.p.name)}</td>${acts.map(([k]) => `<td class="n">${sc[k] || ''}</td>`).join('')}<td class="n"><b>${vals.length ? (vals.reduce((x, y) => x + y, 0) / vals.length).toFixed(1) : ''}</b></td></tr>`; }).join('')}</tbody></table>` : ''}
+      ${bar('5. Captación', `${post.scouting.length}`)}
+      ${post.scouting.length ? `<table class="pr-t"><thead><tr><th>Nº</th><th>Jugador</th><th>Posición</th><th>Pie</th><th>Nivel</th><th>Observaciones</th></tr></thead>
+        <tbody>${post.scouting.map((x) => `<tr><td class="n">${x.number ?? ''}</td><td>${esc(x.name || '')}</td><td>${esc(posName(x.position))}</td><td>${esc(footName(x.foot))}</td><td class="n">${x.level || ''}</td><td>${txt(x.notes)}</td></tr>`).join('')}</tbody></table>` : '<p class="pr-empty">Ningún jugador rival anotado.</p>'}`;
+    return { title: `Informe J${m.matchday ?? ''} ${home} ${score(m)} ${away}`, html };
+  }
+
   function draw() {
     const [home, away] = sides(m, team.name);
     el.innerHTML = `
@@ -114,7 +155,7 @@ export async function render(el, ctx) {
         <div><p class="eyebrow">Informe postpartido · ${esc(team.name)}${team.category ? ' · ' + esc(team.category) : ''}</p>
           <h1 class="match-title"><span class="${m.is_home ? 'us' : ''}">${esc(home)}</span> <span class="vs">${esc(score(m)) || 'vs'}</span> <span class="${m.is_home ? '' : 'us'}">${esc(away)}</span></h1>
           <p>${m.matchday != null ? `Jornada ${m.matchday} · ` : ''}${m.date ? esc(fmt(new Date(m.date + 'T00:00:00'))) : 'Sin fecha'} · Duración ${total} min</p></div>
-        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a><button class="btn" type="button" data-print>Imprimir</button></div>
+        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a>${printButton()}</div>
       </div>
       <nav class="tabs page-tabs no-print" aria-label="Partido">
         <a class="tab" href="#/partidos/${esc(m.id)}/prepartido">Prepartido</a>
@@ -139,7 +180,7 @@ export async function render(el, ctx) {
 
   function wire() {
     el.querySelectorAll('details.ses-sec').forEach((d) => d.addEventListener('toggle', () => { if (d.open) open.add(d.dataset.sec); else open.delete(d.dataset.sec); }));
-    el.querySelector('[data-print]').addEventListener('click', () => { el.querySelectorAll('details.ses-sec').forEach((d) => { d.open = true; }); window.print(); });
+    wirePrint(el, () => printView());
     if (!canEdit) return;
     el.querySelector('[data-done]').addEventListener('click', (ev) => busy(ev.currentTarget, async () => {
       await saver.flush();

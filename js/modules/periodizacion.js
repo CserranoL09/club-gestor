@@ -9,6 +9,7 @@ import { mountThread } from '../lib/comments.js';
 import {
   weeksOf, rangesToWeeks, weeksToRanges, skippedWeeks, microcycleAt, defaultPeriodization, AREAS, LEVELS, DEFAULT_LEGEND
 } from '../lib/periodization.js';
+import { printButton, wirePrint, printHead } from '../lib/print.js';
 
 const brush = { key: 'temp', macro: '1', meso: '1', content: 'x' };
 let endPaint = () => {};
@@ -184,13 +185,46 @@ export async function render(el, ctx) {
       </details>`;
   }
 
+
+  // ---------------------------------------------------------------- impresión (apaisado, ajustada al ancho)
+  function printView() {
+    const groups = [];
+    for (const w of weeks) { const last = groups[groups.length - 1]; const mm = w.monday.getMonth(); if (last && last.m === mm) last.n++; else groups.push({ m: mm, y: w.monday.getFullYear(), n: 1 }); }
+    const first = (arr, w) => w === 0 || arr[w] !== arr[w - 1];
+    const span = (arr, w) => { let n = 1; while (w + n < arr.length && arr[w + n] === arr[w]) n++; return n; };
+    const runs = (arr, cell) => { const out = []; for (let w = 0; w < weeks.length; w++) { if (!first(arr, w)) continue; const n = span(arr, w); out.push(cell(w, n)); } return out.join(''); };
+    const count = (w, kind) => { let n = 0; for (let d = 0; d < 7; d++) n += (events[iso(addDays(w.monday, d))] || []).filter((e) => e.kind === kind).length; return n; };
+    const named = p.contents.filter((c) => c.name);
+    const html = `
+      ${printHead({ title: 'Periodización', team, sub: `Temporada ${esc(season?.name || '')} · ${esc(fmt(weeks[0].monday))} – ${esc(fmt(new Date(p.end_date + 'T00:00:00')))} · ${weeks.length} semanas` })}
+      <table class="pr-t pr-wide">
+        <colgroup><col class="lbl" style="width:30mm">${weeks.map(() => '<col>').join('')}</colgroup>
+        <thead>
+          <tr><th class="lbl">Mes</th>${groups.map((g) => `<th colspan="${g.n}">${g.n > 2 ? MONTHS[g.m] : MONTHS[g.m].slice(0, 3)}${g.n > 3 ? ' ' + g.y : ''}</th>`).join('')}</tr>
+          <tr><th class="lbl">Lunes</th>${weeks.map((w) => `<th>${w.monday.getDate()}</th>`).join('')}</tr>
+        </thead>
+        <tbody>
+          <tr><th class="lbl">Periodo</th>${runs(per, (w, n) => { const l = legendOf(per[w]); return `<td colspan="${n}" class="fill" style="${l ? `background:${esc(l.color)}` : ''}">${l && n > 1 ? esc(l.label) : ''}</td>`; })}</tr>
+          <tr><th class="lbl">Macrociclo</th>${runs(mac, (w, n) => `<td colspan="${n}" class="fill" style="background:${mac[w] ? (Number(mac[w]) % 2 ? '#dfe5ea' : '#c9d1d9') : 'transparent'}">${esc(mac[w] || '')}</td>`)}</tr>
+          <tr><th class="lbl">Mesociclo</th>${runs(mes, (w, n) => `<td colspan="${n}" class="fill" style="background:${mes[w] ? (Number(mes[w]) % 2 ? '#eef1f4' : '#dfe5ea') : 'transparent'}">${esc(mes[w] || '')}</td>`)}</tr>
+          <tr><th class="lbl">Microciclo</th>${weeks.map((w) => `<td>${micro(w.i)?.number ?? '—'}</td>`).join('')}</tr>
+          <tr><th class="lbl">Sesiones</th>${weeks.map((w) => `<td>${count(w, 'ses') || ''}</td>`).join('')}</tr>
+          <tr><th class="lbl">Partidos</th>${weeks.map((w) => `<td>${count(w, 'mat') ? '●'.repeat(count(w, 'mat')) : ''}</td>`).join('')}</tr>
+          ${named.length ? `<tr class="grp"><th class="lbl">Contenidos</th><td colspan="${weeks.length}"></td></tr>` : ''}
+          ${named.map((c) => `<tr><th class="lbl">${esc(c.name)}${c.area ? ` <small class="pr-muted">${esc(AREAS.find(([k]) => k === c.area)?.[1] || '')}</small>` : ''}</th>${weeks.map((w) => { const v = c.marks?.[w.i]; return `<td class="${v != null ? 'lv-' + v : ''}">${v != null ? LEVELS[v] : ''}</td>`; }).join('')}</tr>`).join('')}
+        </tbody>
+      </table>
+      <div class="pr-legend">${p.legend.map((l) => `<span><i style="background:${esc(l.color)}"></i>${esc(l.label)}</span>`).join('')}<span>● Partido</span><span>Contenidos: ✖ marca · 1–3 nivel</span></div>`;
+    return { title: `Periodización ${team.name} ${season?.name || ''}`, html, landscape: true };
+  }
+
   function draw() {
     weeks = weeksOf(p);
     const mc = microcycleAt(p, today);
     el.innerHTML = `${head}${permNote(perm)}
       <div class="per-top no-print">
         <p>${mc ? `Hoy: <strong>${mc.number != null ? `microciclo ${mc.number}` : 'semana sin microciclo'}</strong>${mc.period ? ` · ${esc(mc.period)}` : ''}` : 'Hoy está fuera de la periodización.'}</p>
-        <div class="actions">${nowWeek >= 0 ? '<button class="btn" type="button" data-today>Ir a hoy</button>' : ''}<button class="btn" type="button" data-print>Imprimir</button></div>
+        <div class="actions">${nowWeek >= 0 ? '<button class="btn" type="button" data-today>Ir a hoy</button>' : ''}${printButton()}</div>
       </div>
       <div class="legend-inline">${p.legend.map((l) => `<span><i style="background:${esc(l.color)}"></i>${esc(l.label)}${l.holiday && p.options.skip_holidays ? ' (sin microciclo)' : ''}</span>`).join('')}<span><i class="dot ses"></i>Sesión</span><span><i class="dot mat"></i>Partido</span></div>
       ${paletteHTML()}
@@ -214,7 +248,7 @@ export async function render(el, ctx) {
 
   // ---------------------------------------------------------------- eventos
   function wire() {
-    el.querySelector('[data-print]').addEventListener('click', () => window.print());
+    wirePrint(el, () => printView());
     el.querySelector('.per-settings').addEventListener('toggle', (ev) => { settingsOpen = ev.target.open; });
     el.querySelector('[data-today]')?.addEventListener('click', () => {
       const s = el.querySelector('[data-scroll]');

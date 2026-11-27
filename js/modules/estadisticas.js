@@ -10,6 +10,7 @@ import { sides, score } from '../lib/matches.js';
 import { ORIGINS, ORIGIN_SHORT } from '../lib/post.js';
 import { played, inRange, perMatch, playerTotals, teamSummary } from '../lib/seasonstats.js';
 import { bars, donut, line, CAT } from '../lib/charts.js';
+import { printButton, wirePrint, printHead, bar, chunk } from '../lib/print.js';
 
 const VIEWS = [['jugadores', 'Jugadores'], ['excel', 'Por jornadas'], ['equipo', 'Equipo']];
 const COLS = [
@@ -56,7 +57,7 @@ export async function render(el, ctx) {
   el.innerHTML = `
     <div class="page-head">
       <div><h1>📊 Estadísticas</h1><p>${esc(team.name)} · ${esc(S.season?.name || '')} · ${games.length} ${games.length === 1 ? 'partido jugado' : 'partidos jugados'}${filtered ? ' (filtrado)' : ''}</p></div>
-      <div class="actions no-print"><button class="btn" type="button" data-excel${totals.length ? '' : ' disabled'}>Excel</button><button class="btn" type="button" data-print>Imprimir</button></div>
+      <div class="actions no-print"><button class="btn" type="button" data-excel${totals.length ? '' : ' disabled'}>Excel</button>${printButton()}</div>
     </div>
     <nav class="tabs page-tabs no-print" aria-label="Vistas">${VIEWS.map(([k, l]) => `<a class="tab" href="${link({ vista: k })}" aria-current="${k === view ? 'page' : 'false'}">${l}</a>`).join('')}</nav>
     <form class="stat-filters no-print" data-filters>
@@ -138,13 +139,59 @@ export async function render(el, ctx) {
       </div>`;
   }
 
+
+  // ---------------------------------------------------------------- impresión de la vista actual
+  function printView() {
+    const range = [f.j1 || f.j2 ? `Jornadas ${f.j1 || '…'}–${f.j2 || '…'}` : '', f.d1 || f.d2 ? `Fechas ${f.d1 ? fmt(new Date(f.d1 + 'T00:00:00')) : '…'} – ${f.d2 ? fmt(new Date(f.d2 + 'T00:00:00')) : '…'}` : ''].filter(Boolean).join(' · ');
+    const sub = `${VIEWS.find(([k]) => k === view)[1]} · ${games.length} ${games.length === 1 ? 'partido' : 'partidos'}${range ? ' · ' + esc(range) : ' · toda la temporada'}`;
+    const head = printHead({ title: 'Estadísticas de temporada', team, sub });
+    if (!games.length) return { title: `Estadísticas ${team.name}`, html: `${head}<p class="pr-empty">Todavía no hay partidos jugados.</p>` };
+    let html = head, landscape = true;
+    if (view === 'jugadores') {
+      const sum = (fn) => totals.reduce((n, t) => n + fn(t), 0);
+      html += `<table class="pr-t pr-stats"><thead><tr>${COLS.map(([k, l]) => `<th>${l}${sort === k ? (dir === 1 ? ' ▲' : ' ▼') : ''}</th>`).join('')}</tr></thead>
+        <tbody>${totals.map((t) => `<tr><td class="n">${t.p.number ?? ''}</td><td>${esc(t.p.name)}</td><td class="n">${t.called}</td><td class="n">${t.starter}</td><td class="n"><b>${t.minutes}</b></td><td class="n">${t.pct}%</td>
+          ${ORIGINS.map((o) => `<td class="n">${t.gf[o] || ''}</td>`).join('')}<td class="n"><b>${t.goals || ''}</b></td><td class="n">${t.assists || ''}</td><td class="n">${t.against || ''}</td><td class="n">${t.yellow || ''}</td><td class="n">${t.red || ''}</td>
+          <td class="n">${t.attPct != null ? `${t.attPct}% <small>${t.att.D}/${t.att.L}/${t.att.A}</small>` : '—'}</td><td class="n">${t.avg != null ? t.avg.toFixed(1) : '—'}</td></tr>`).join('')}</tbody>
+        <tfoot><tr><td></td><th>Equipo</th><td></td><td></td><td></td><td></td>${ORIGINS.map((o) => `<td class="n">${sum((t) => t.gf[o])}</td>`).join('')}<td class="n">${sum((t) => t.goals)}</td><td class="n">${sum((t) => t.assists)}</td><td></td><td class="n">${sum((t) => t.yellow)}</td><td class="n">${sum((t) => t.red)}</td><td></td><td></td></tr></tfoot></table>
+        <p class="pr-note">% min sobre ${games.length} × ${total} min posibles · GC campo: goles en contra estando en el campo · % entreno: disponible / sesiones registradas (D/L/A) · Nota: media del postpartido.</p>`;
+    } else if (view === 'excel') {
+      const sub2 = [['D', (r) => (r.available ? 'D' : 'No')], ['C', (r) => (r.called ? 'C' : 'No')], ['T', (r) => (r.called ? (r.starter ? 'T' : 'S') : '')], ['Min', (r) => (r.called ? r.minutes : '')],
+        ...ORIGINS.map((o) => [ORIGIN_SHORT[o], (r) => r.gf[o] || '']), ['As', (r) => r.assists || ''], ...ORIGINS.map((o) => [ORIGIN_SHORT[o], (r) => r.gc[o] || '']), ['TA', (r) => r.yellow || ''], ['TR', (r) => r.red || '']];
+      const list = totals.slice().sort((a, b) => (a.p.number ?? 99) - (b.p.number ?? 99));
+      html += chunk(games, 3).map((part, pi) => `<table class="pr-t pr-wide pr-excel${pi ? ' pr-break' : ''}">
+        <colgroup><col style="width:34mm">${part.map(() => sub2.map(() => '<col>').join('')).join('')}</colgroup>
+        <thead><tr><th class="lbl" rowspan="3">Jugador</th>${part.map((m) => { const [h, a] = sides(m, team.name); return `<th colspan="${sub2.length}" class="first">J${m.matchday ?? '–'} · ${m.date ? esc(fmt(new Date(m.date + 'T00:00:00'))) : ''} · ${esc(h)} ${esc(score(m))} ${esc(a)}</th>`; }).join('')}</tr>
+          <tr>${part.map(() => '<th colspan="4" class="first">Convocatoria</th><th colspan="5">Goles a favor</th><th colspan="4">Goles en contra</th><th colspan="2">Tarjetas</th>').join('')}</tr>
+          <tr>${part.map(() => sub2.map(([l], i) => `<th class="${i ? '' : 'first'}">${l}</th>`).join('')).join('')}</tr></thead>
+        <tbody>${list.map((t) => `<tr><th class="lbl">${t.p.number ?? '–'} ${esc(t.p.name)}</th>${part.map((m) => { const r = pm.get(m.id)?.get(t.p.id); return sub2.map(([, fn], i) => `<td class="${i ? '' : 'first'}">${r ? esc(fn(r)) : ''}</td>`).join(''); }).join('')}</tr>`).join('')}</tbody>
+      </table>`).join('');
+    } else {
+      landscape = false;
+      const t = teamSummary(matches, total);
+      const originData = (side) => [...ORIGINS, 'Sin origen'].map((o, i) => ({ label: o, value: t.byOrigin[side][o], color: i < 4 ? CAT[i] : 'var(--c0)' })).filter((d) => d.label !== 'Sin origen' || d.value);
+      html += `
+        <div class="pr-tiles"><div><strong>${t.pts}</strong><span>Puntos</span></div><div><strong>${t.w}-${t.d}-${t.l}</strong><span>G · E · P</span></div><div><strong>${t.gf}:${t.ga}</strong><span>Goles a favor y en contra</span></div>
+          <div><strong class="streak">${t.streak.map((r) => `<i class="r-${r}">${r}</i>`).join('')}</strong><span>Racha (últimos 5)</span></div></div>
+        <div class="pr-charts">
+          <div>${bar('Resultados')}<table class="pr-t"><tbody>${t.res.map(({ m, r }) => { const [h, a] = sides(m, team.name); return `<tr><td class="c"><i class="r-${r}">${r}</i></td><td>J${m.matchday ?? '–'}</td><td>${esc(h)} <b>${esc(score(m))}</b> ${esc(a)}</td></tr>`; }).join('')}</tbody></table></div>
+          <div>${bar('Puntos acumulados')}${line({ labels: t.res.map(({ m }) => `J${m.matchday ?? ''}`), series: [{ name: 'Puntos', color: 'var(--accent)', values: t.cumulative }], title: 'Puntos acumulados' })}</div>
+          <div>${bar('Goles a favor por origen')}${donut({ data: originData('for'), title: 'a favor' })}</div>
+          <div>${bar('Goles en contra por origen')}${donut({ data: originData('against'), title: 'en contra' })}</div>
+          <div class="wide pr-avoid">${bar('Goles por tramos de 15 minutos')}${bars({ width: 640, height: 170, labels: t.bandLabels, series: [{ name: 'A favor', color: 'var(--accent)', values: t.bands.for }, { name: 'En contra', color: 'var(--against)', values: t.bands.against }], title: 'Goles por tramos' })}</div>
+          <div class="wide pr-avoid">${bar('Notas colectivas (media por fase, 1–5)')}<p>${t.phases.map((p) => `${esc(p.label)} <b>${p.avg ?? '—'}</b>`).join(' · ')}</p></div>
+        </div>`;
+    }
+    return { title: `Estadísticas ${team.name} ${S.season?.name || ''}`, html, landscape };
+  }
+
   // ---------------------------------------------------------------- eventos
   el.querySelector('[data-filters]').addEventListener('submit', (ev) => {
     ev.preventDefault();
     const v = Object.fromEntries(new FormData(ev.target));
     location.hash = link(v);
   });
-  el.querySelector('[data-print]').addEventListener('click', () => window.print());
+  wirePrint(el, () => printView());
   el.querySelector('[data-excel]').addEventListener('click', (ev) => busy(ev.currentTarget, () => exportSheet({
     name: `Estadísticas ${team.name}`, sheet: 'Jugadores',
     header: COLS.map(([, l]) => l).concat(['D', 'L', 'A']),

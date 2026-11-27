@@ -1,6 +1,7 @@
 // Plantilla de jugadores del equipo activo: dorsal, nombre, posición, pie, año, estado y activo.
 // Edición en línea con autoguardado, «Pegar lista», «Copiar de otro equipo» y exportación a Excel.
 import { esc, toast, busy, ask, permNote } from '../ui.js';
+import { printButton, wirePrint, printHead } from '../lib/print.js';
 import { sb } from '../supabase.js';
 import { S, permission, canReadTeam } from '../session.js';
 import { autosaver } from '../store.js';
@@ -45,7 +46,7 @@ export async function render(el, ctx) {
       <div><h1>👥 Plantilla</h1><p>${esc(team.name)}${team.category ? ' · ' + esc(team.category) : ''} · ${esc(S.season?.name || '')}</p></div>
       <div class="actions no-print">
         <button class="btn" type="button" data-excel${players.length ? '' : ' disabled'}>Excel</button>
-        <button class="btn" type="button" data-print>Imprimir / PDF</button>
+        ${printButton()}
       </div>
     </div>
     ${permNote(perm)}
@@ -104,7 +105,9 @@ export async function render(el, ctx) {
   // ---------- Barra
   el.querySelector('[data-sort]').addEventListener('change', (ev) => { location.hash = link({ orden: ev.target.value }); });
   el.querySelector('[data-inactive]').addEventListener('change', (ev) => { location.hash = link({ inactivos: ev.target.checked ? '1' : '' }); });
-  el.querySelector('[data-print]').addEventListener('click', () => window.print());
+  wirePrint(el, () => ({ title: `Plantilla ${team.name}`, html: `${printHead({ title: 'Plantilla', team, sub: `${active.length} jugadores activos · D ${count('D')} · L ${count('L')} · A ${count('A')}` })}
+    <table class="pr-t pr-list"><thead><tr><th>Nº</th><th>Jugador</th><th>Posición</th><th>Pie</th><th>Año</th><th>Estado</th></tr></thead>
+    <tbody>${sorted.map((p) => `<tr${p.active ? '' : ' class="pr-muted"'}><td class="dorsal">${p.number ?? '–'}</td><td>${esc(p.name)}${p.active ? '' : ' (inactivo)'}</td><td>${esc(POSITIONS.find(([k]) => k === p.position)?.[1] || '')}</td><td>${esc(FEET.find(([k]) => k === p.foot)?.[1] || '')}</td><td class="n">${p.birth_year ?? ''}</td><td class="c">${esc(p.status)}</td></tr>`).join('')}</tbody></table>` }));
   el.querySelector('[data-excel]').addEventListener('click', (ev) => busy(ev.currentTarget, () => exportSheet({
     name: `Plantilla ${team.name}`, sheet: 'Plantilla',
     header: ['Dorsal', 'Nombre', 'Posición', 'Pie', 'Año', 'Estado', 'Activo'],

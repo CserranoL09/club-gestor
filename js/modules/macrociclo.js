@@ -7,6 +7,7 @@ import { autosaver } from '../store.js';
 import { MONTHS, fmt } from '../lib/dates.js';
 import { mountThread } from '../lib/comments.js';
 import { rangesToWeeks, weeksToRanges, LEVELS } from '../lib/periodization.js';
+import { printButton, wirePrint, printHead } from '../lib/print.js';
 import { MACRO_AREAS, PHASES, BUILTIN_TEMPLATES, areaName, defaultSpan, defaultPhases, macroWeeks, itemTotal, groupWeek, groupTotal } from '../lib/macro.js';
 
 const brush = { phase: 'preparatorio', mark: 'x' };
@@ -185,6 +186,33 @@ async function editor(el, ctx) {
       </div>`;
   }
 
+
+  // ---------------------------------------------------------------- impresión (apaisado)
+  function printView() {
+    const months = [];
+    for (const w of weeks) { const last = months[months.length - 1]; const k = w.monday.getMonth(); if (last && last.m === k) last.n++; else months.push({ m: k, y: w.monday.getFullYear(), n: 1 }); }
+    const runs = []; for (let w = 0; w < weeks.length; w++) { if (w && ph[w] === ph[w - 1]) runs[runs.length - 1].n++; else runs.push({ k: ph[w], n: 1 }); }
+    const end = new Date(weeks[weeks.length - 1].monday); end.setDate(end.getDate() + 6);
+    const html = `
+      ${printHead({ title: m.name, team, sub: `Macrociclo · ${esc(areaName(m.area))} · ${esc(fmt(weeks[0].monday))} – ${esc(fmt(end))} · ${m.weeks} semanas` })}
+      <table class="pr-t pr-wide">
+        <colgroup><col style="width:34mm">${weeks.map(() => '<col>').join('')}<col style="width:9mm"></colgroup>
+        <thead>
+          <tr><th class="lbl">Mes</th>${months.map((g) => `<th colspan="${g.n}">${g.n > 2 ? MONTHS[g.m] : MONTHS[g.m].slice(0, 3)}</th>`).join('')}<th class="tot" rowspan="3">Total</th></tr>
+          <tr><th class="lbl">Semana</th>${weeks.map((w) => `<th>${w.i + 1}</th>`).join('')}</tr>
+          <tr><th class="lbl">Lunes</th>${weeks.map((w) => `<th>${w.monday.getDate()}</th>`).join('')}</tr>
+        </thead>
+        <tbody>
+          <tr><th class="lbl">Fase</th>${runs.map((r) => { const p = phaseOf(r.k); return `<td colspan="${r.n}" class="fill" style="${p ? `background:${p.color}` : ''}">${p && r.n > 2 ? p.label : ''}</td>`; }).join('')}<td class="tot"></td></tr>
+          ${m.groups.map((g) => `
+            <tr class="grp"><th class="lbl">${esc(g.name)}</th>${weeks.map((w) => `<td>${groupWeek(g, w.i) || ''}</td>`).join('')}<td class="tot">${groupTotal(g, m.weeks)}</td></tr>
+            ${(g.items || []).map((it) => `<tr><th class="lbl">${esc(it.name)}</th>${weeks.map((w) => { const v = it.marks?.[w.i]; return `<td class="${v != null ? 'lv-' + v : ''}">${v != null ? LEVELS[v] : ''}</td>`; }).join('')}<td class="tot">${itemTotal(it, m.weeks)}</td></tr>`).join('')}`).join('')}
+        </tbody>
+      </table>
+      <div class="pr-legend">${PHASES.map((p) => `<span><i style="background:${p.color}"></i>${p.label}</span>`).join('')}<span>✖ marca · 1–3 nivel · en los grupos, contenidos marcados por semana</span></div>`;
+    return { title: `${m.name} ${team.name}`, html, landscape: true };
+  }
+
   function draw() {
     weeks = macroWeeks(m);
     const end = new Date(weeks[weeks.length - 1].monday); end.setDate(end.getDate() + 6);
@@ -195,7 +223,7 @@ async function editor(el, ctx) {
       <div class="page-head">
         <div><p class="eyebrow">${esc(team.name)} · ${esc(areaName(m.area))}</p><h1>📈 ${esc(m.name)}</h1>
           <p>${fmt(weeks[0].monday)} – ${fmt(end)} · ${m.weeks} semanas</p></div>
-        <div class="actions no-print"><a class="btn" href="#/macrociclo">← Macrociclos</a>${nowWeek >= 0 ? '<button class="btn" type="button" data-today>Ir a hoy</button>' : ''}<button class="btn" type="button" data-print>Imprimir</button></div>
+        <div class="actions no-print"><a class="btn" href="#/macrociclo">← Macrociclos</a>${nowWeek >= 0 ? '<button class="btn" type="button" data-today>Ir a hoy</button>' : ''}${printButton()}</div>
       </div>
       ${note}
       <div class="legend-inline">${PHASES.map((p) => `<span><i style="background:${p.color}"></i>${p.label}</span>`).join('')}<span><i class="lv-x"></i>✖ Trabajado</span><span><i class="lv-1"></i>Nivel 1</span><span><i class="lv-2"></i>Nivel 2</span><span><i class="lv-3"></i>Nivel 3</span></div>
@@ -229,7 +257,7 @@ async function editor(el, ctx) {
   };
 
   function wire() {
-    el.querySelector('[data-print]').addEventListener('click', () => window.print());
+    wirePrint(el, () => printView());
     el.querySelector('[data-today]')?.addEventListener('click', () => {
       const s = el.querySelector('[data-scroll]'); const c = s?.querySelector('th.wk-n.now');
       if (s && c) s.scrollTo({ left: Math.max(0, c.offsetLeft - 200 - s.clientWidth / 3), behavior: 'smooth' });
