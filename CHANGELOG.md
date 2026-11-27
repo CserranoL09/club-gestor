@@ -1,5 +1,13 @@
 # Novedades de Club Gestor
 
+## v0.18.0 · 27/11/2026 · Estadísticas de temporada (Prompt 13)
+
+- Estadísticas de temporada por jugador: convocatorias, titularidades, minutos y % de los posibles, goles por origen, asistencias, goles en contra estando en el campo, tarjetas, asistencia a entrenamientos (% y D/L/A) y nota media del postpartido. Se ordena tocando la columna y se filtra por jornadas o fechas; exportable a Excel.
+- Vista «Por jornadas» como la hoja POSTPARTIDO: una columna por jornada con convocatoria, goles a favor y en contra por origen y tarjetas, con la primera columna fija.
+- Equipo: puntos, balance, racha, resultados, puntos acumulados, goles a favor y en contra por origen, goles por tramos de 15 minutos y media de las notas colectivas por fase.
+- Gráficos SVG propios (barras, donut y línea) con los colores del club y detalle al pasar el ratón o tocar.
+- Ficha del jugador completa: resumen de la temporada, minutos por jornada, asistencia a entrenamientos, notas del postpartido y partido a partido.
+
 ## v0.17.0 · 27/11/2026 · Informe postpartido (Prompt 12)
 
 - Informe postpartido (hoja POSTPARTIDO) con jornada, fecha, duración y resultado.

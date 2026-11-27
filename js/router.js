@@ -32,7 +32,7 @@ const ROUTES = [
   { path: '/partidos/:id/prepartido', key: 'prepartido', load: () => import('./modules/prepartido.js'), area: 'team' },
   { path: '/partidos/:id/acta', key: 'partido', load: () => import('./modules/acta.js'), area: 'team' },
   { path: '/partidos/:id/postpartido', key: 'postpartido', load: () => import('./modules/postpartido.js'), area: 'team' },
-  { path: '/estadisticas', key: 'estadisticas', area: 'team' },
+  { path: '/estadisticas', key: 'estadisticas', load: () => import('./modules/estadisticas.js'), area: 'team' },
   { path: '/jugador/:id', key: 'plantilla', load: () => import('./modules/jugador.js'), area: 'team' }
 ];
 

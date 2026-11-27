@@ -1,7 +1,18 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.17.0';
+export const APP_VERSION = '0.18.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.18.0',
+    date: '27/11/2026',
+    items: [
+      'Estadísticas de temporada por jugador: convocatorias, titularidades, minutos y % de los posibles, goles por origen, asistencias, goles en contra estando en el campo, tarjetas, asistencia a entrenamientos (% y D/L/A) y nota media del postpartido. Se ordena tocando la columna y se filtra por jornadas o fechas; exportable a Excel.',
+      'Vista «Por jornadas» como la hoja POSTPARTIDO: una columna por jornada con convocatoria, goles a favor y en contra por origen y tarjetas, con la primera columna fija.',
+      'Equipo: puntos, balance, racha, resultados, puntos acumulados, goles a favor y en contra por origen, goles por tramos de 15 minutos y media de las notas colectivas por fase.',
+      'Gráficos SVG propios (barras, donut y línea) con los colores del club y detalle al pasar el ratón o tocar.',
+      'Ficha del jugador completa: resumen de la temporada, minutos por jornada, asistencia a entrenamientos, notas del postpartido y partido a partido.'
+    ]
+  },
   {
     version: '0.17.0',
     date: '27/11/2026',
