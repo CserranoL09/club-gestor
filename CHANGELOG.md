@@ -1,5 +1,15 @@
 # Novedades de Club Gestor
 
+## v0.16.0 · 27/11/2026 · Acta del partido (Prompt 11)
+
+- Acta del partido (hoja PARTIDO), pensada para el banquillo en el móvil o la tableta: marcador fijo arriba y resultado calculado con los eventos.
+- Cronómetro por partes (partes × minutos del equipo) con pausa, siguiente parte y ajuste manual; la pantalla no se apaga mientras corre.
+- Botones grandes de Gol, Gol rival, Amarilla, Roja y Cambio: jugador (y asistente), origen (combinativo, directo, transición, ABP), nota y minuto del cronómetro o escrito.
+- Lista de eventos ordenada por minuto, editable, con «Deshacer el último».
+- Tabla de convocados (Nº, Jugador, Gol, Asis, TA, TR, Min) calculada sola: titulares desde el 0, los cambios suman y restan y la roja corta; cada celda se corrige a mano (queda marcada) y ↺ vuelve al cálculo.
+- Contadores rápidos +/− configurables (recuperaciones, pérdidas, faltas, ocasiones…), anotaciones y observaciones.
+- Sin conexión los eventos se guardan en el dispositivo y se sincronizan al volver la conexión.
+
 ## v0.15.1 · 27/11/2026
 
 - Cada versión nueva se carga entera al momento: los archivos de la app van marcados con su versión, así el navegador (también Safari) no mezcla archivos viejos y nuevos.
