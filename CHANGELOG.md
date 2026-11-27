@@ -1,5 +1,10 @@
 # Novedades de Club Gestor
 
+## v0.15.1 · 27/11/2026
+
+- Cada versión nueva se carga entera al momento: los archivos de la app van marcados con su versión, así el navegador (también Safari) no mezcla archivos viejos y nuevos.
+- Si se publica una versión mientras la app está abierta, aparece el aviso «Hay una versión nueva» con el botón «Actualizar».
+
 ## v0.15.0 · 27/11/2026 · Partidos y Prepartido (Prompt 10)
 
 - Partidos: lista con jornada, fecha, local y visitante (el equipo se pone solo), resultado y estado (pendiente, convocado, jugado, con informe), con filtros.

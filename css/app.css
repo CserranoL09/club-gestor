@@ -1200,3 +1200,9 @@ a.stat:hover { border-color: var(--accent); }
   .pitch .grass { fill: #e8f5e9; }
   .pitch line, .pitch circle:not(g circle), .pitch rect:not(.grass) { stroke: #333; }
 }
+
+/* ===== v0.15.1 · Aviso de versión nueva ===== */
+.update-bar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(16px + env(safe-area-inset-bottom)); z-index: 60; display: flex; gap: 12px; align-items: center; max-width: calc(100vw - 32px); padding: 10px 12px 10px 16px; border-radius: 14px; background: var(--surface); border: 1px solid var(--accent); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); font-weight: 600; }
+body.has-nav .update-bar { bottom: calc(84px + env(safe-area-inset-bottom)); }
+@media (min-width: 761px) { body.has-nav .update-bar { bottom: 20px; } }
+@media (max-width: 760px) { .update-bar { left: 16px; right: 16px; transform: none; max-width: none; justify-content: space-between; } }

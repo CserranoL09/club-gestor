@@ -204,6 +204,34 @@ function guard(route, path) {
 // ---------------------------------------------------------------------
 showConnection();
 
+// ---------------------------------------------------------------------
+// Versión nueva publicada: se avisa y se recarga con los archivos nuevos
+// ---------------------------------------------------------------------
+async function checkUpdate() {
+  try {
+    const r = await fetch(`js/version.js?t=${Date.now()}`, { cache: 'no-store' });
+    const v = (await r.text()).match(/APP_VERSION = '([^']+)'/)?.[1];
+    if (!v || v === APP_VERSION || document.getElementById('updateBar')) return;
+    const bar = document.createElement('div');
+    bar.id = 'updateBar';
+    bar.className = 'update-bar';
+    bar.setAttribute('role', 'status');
+    bar.innerHTML = `<span>Hay una versión nueva de Club Gestor (v${esc(v)}).</span><button class="btn small primary" type="button">Actualizar</button>`;
+    bar.querySelector('button').addEventListener('click', async (ev) => {
+      ev.currentTarget.disabled = true;
+      await flushPending();
+      // Pide de nuevo la página para que el navegador no use la guardada.
+      try { await fetch('./', { cache: 'reload' }); await fetch('./index.html', { cache: 'reload' }); } catch { /* sin conexión: se recarga igual */ }
+      location.reload();
+    });
+    document.body.appendChild(bar);
+  } catch { /* sin conexión */ }
+}
+async function flushPending() { try { (await import('./store.js')).flushAll(); } catch { /* nada pendiente */ } }
+checkUpdate();
+setInterval(checkUpdate, 5 * 60 * 1000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+
 (async () => {
   try {
     await initAuth();

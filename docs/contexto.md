@@ -114,3 +114,4 @@ REGLAS PARA CUALQUIER CAMBIO
 9. Antes de entregar: si puedes ejecutar código, pasa node --check a cada .js y comprueba que los imports entre módulos existen y que los id del HTML coinciden con el JS. Si no puedes ejecutarlo, revísalo con cuidado y dímelo.
 10. Termina siempre con un resumen breve: qué cambió, qué archivos subir y cuáles borrar en GitHub, SQL que pegar (o «no hay SQL») y qué debo probar en la web.
 ```
+- Publicar una versión: subir APP_VERSION y CHANGELOG en js/version.js y ejecutar `python3 tools/versionar.py`, que marca index.html (import map con ?v=VERSIÓN para cada módulo, CSS y app.js). La app compara js/version.js con su versión cada 5 minutos y ofrece «Actualizar».

@@ -1,7 +1,15 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.15.0';
+export const APP_VERSION = '0.15.1';
 
 export const CHANGELOG = [
+  {
+    version: '0.15.1',
+    date: '27/11/2026',
+    items: [
+      'Cada versión nueva se carga entera al momento: los archivos de la app van marcados con su versión, así el navegador (también Safari) no mezcla archivos viejos y nuevos.',
+      'Si se publica una versión mientras la app está abierta, aparece el aviso «Hay una versión nueva» con el botón «Actualizar».'
+    ]
+  },
   {
     version: '0.15.0',
     date: '27/11/2026',
