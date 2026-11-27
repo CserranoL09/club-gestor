@@ -1,7 +1,7 @@
 // Rutas por hash (#/modulo/:id). Cada módulo exporta render(el, ctx).
 import { MODULES } from './modules/list.js';
 import { flushAll } from './store.js';
-import { decorateSections } from './lib/sectioncomments.js';
+import { decorateSections, resetSections } from './lib/sectioncomments.js';
 
 // area: 'account' (cuenta), 'club' (Dirección y Coordinación) o 'team' (trabajo de un equipo).
 const ROUTES = [
@@ -78,14 +78,22 @@ export function startRouter(main, { guard = () => null } = {}) {
       await flushAll();                        // guardar lo pendiente de la página anterior
       const view = await loader();
       if (mine !== seq) return;              // se ha cambiado de página mientras cargaba
+      resetSections();
       main.innerHTML = '';
       window.dispatchEvent(new CustomEvent('clubgestor:route', { detail: { path, query, route } }));
       await view.render(main, { params, query, path, module: mod, route });
       if (mine === seq) decorateSections(main, route, params).catch((err) => console.warn(err));
     } catch (err) {
-      console.error(err);
+      const offline = !navigator.onLine || /dynamically imported module|failed to fetch|importing a module script failed|load failed/i.test(String(err?.message || err));
+      (offline ? console.warn : console.error)(err);
       if (mine !== seq) return;
-      main.innerHTML = '<div class="card empty"><div class="big">⚠</div><h2>No se ha podido abrir esta página</h2><p>Recarga la página. Si sigue fallando, copia el error de la consola (F12).</p></div>';
+      if (offline) {
+        // Sin conexión no se puede descargar el código de esta página: se recarga sola al volver la conexión.
+        main.innerHTML = '<div class="card empty"><div class="big">📡</div><h2>Sin conexión</h2><p>Esta página se abrirá cuando vuelva la conexión.</p><p><button class="btn" type="button" onclick="location.reload()">Reintentar</button></p></div>';
+        window.addEventListener('online', () => location.reload(), { once: true });
+      } else {
+        main.innerHTML = '<div class="card empty"><div class="big">⚠</div><h2>No se ha podido abrir esta página</h2><p>Recarga la página. Si sigue fallando, copia el error de la consola (F12).</p></div>';
+      }
     }
     main.removeAttribute('aria-busy');
   }

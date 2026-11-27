@@ -1,7 +1,7 @@
 // Sesión del usuario: cuenta, perfil, clubes, temporada y equipo activos, y permisos.
 // Los permisos de aquí solo deciden qué se muestra; la seguridad real la da RLS en Supabase.
 import { getClient, isConfigured } from './supabase.js';
-import { getCtx, setCtx, clearCtx } from './store.js';
+import { getCtx, setCtx, clearCtx, setQueueOwner, clearQueue } from './store.js';
 
 // Perfiles del club. Los valores internos no cambian (admin = Dirección) para no tocar datos guardados.
 export const ROLE_LABEL = {
@@ -72,6 +72,7 @@ export async function initAuth() {
   sb = await getClient();
   const { data } = await sb.auth.getSession();
   S.user = data.session?.user || null;
+  setQueueOwner(S.user?.id);
   if (S.user) await loadUserData();
 
   sb.auth.onAuthStateChange((event, session) => {
@@ -85,6 +86,7 @@ export async function initAuth() {
         return;
       }
       S.user = session?.user || null;
+      setQueueOwner(S.user?.id);
       if (S.user) await loadUserData(); else resetData();
       emit();
     }, 0);
@@ -252,6 +254,8 @@ export async function refresh(clubId, teamId = null) {
 }
 
 export async function signOut() {
+  clearQueue();            // lo pendiente de esta cuenta no se envía con la siguiente
+  setQueueOwner(null);
   try { await sb?.auth.signOut(); } catch { /* sin conexión: se cierra igualmente en este navegador */ }
   S.user = null;
   resetData();

@@ -24,6 +24,13 @@ const titleOf = (h) => { const c = h.cloneNode(true); c.querySelectorAll('.sec-c
 let observer = null;
 let seq = 0;
 
+/** Al empezar a cambiar de página: los marcadores de la página anterior dejan de aplicarse. */
+export function resetSections() {
+  observer?.disconnect();
+  observer = null;
+  seq++;
+}
+
 /** Pone los marcadores en `main`. Se vuelve a aplicar si el módulo repinta una parte. */
 export async function decorateSections(main, route, params) {
   observer?.disconnect();

@@ -1,7 +1,18 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.22.0';
+export const APP_VERSION = '0.23.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.23.0',
+    date: '27/11/2026',
+    items: [
+      'Ordenadores compartidos: lo que se guarda sin conexión queda ligado a tu cuenta. Al cerrar sesión con cambios sin enviar, la app avisa; si se cierra igualmente, se descartan y nunca se envían con la cuenta de otra persona.',
+      'Al volver la conexión, lo guardado sin conexión ya no pisa lo que otra persona cambió entretanto: la app pregunta si sobrescribir con lo tuyo o quedarte con su versión.',
+      'Textos legibles con cualquier color de club: el color del club como texto se aclara u oscurece solo hasta tener buen contraste, y los avisos (ámbar, rojo y verde) se leen bien en tema claro.',
+      'iPhone y iPad con iOS anterior a 16.4: en vez de una página en blanco, un mensaje explica que hay que actualizar o usar otro navegador. Sin conexión, una página que no se puede descargar lo dice y se abre sola al volver la conexión.',
+      'Seguridad: dos funciones internas ya no se pueden llamar desde fuera, y las imágenes del club solo las sustituye o borra la Dirección o quien las subió (migración 012).'
+    ]
+  },
   {
     version: '0.22.0',
     date: '27/11/2026',

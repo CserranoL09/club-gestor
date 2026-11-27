@@ -1,5 +1,13 @@
 # Novedades de Club Gestor
 
+## v0.23.0 · 27/11/2026 · Correcciones de la auditoría (2–7)
+
+- Ordenadores compartidos: lo que se guarda sin conexión queda ligado a tu cuenta. Al cerrar sesión con cambios sin enviar, la app avisa; si se cierra igualmente, se descartan y nunca se envían con la cuenta de otra persona.
+- Al volver la conexión, lo guardado sin conexión ya no pisa lo que otra persona cambió entretanto: la app pregunta si sobrescribir con lo tuyo o quedarte con su versión.
+- Textos legibles con cualquier color de club: el color del club como texto se aclara u oscurece solo hasta tener buen contraste, y los avisos (ámbar, rojo y verde) se leen bien en tema claro.
+- iPhone y iPad con iOS anterior a 16.4: en vez de una página en blanco, un mensaje explica que hay que actualizar o usar otro navegador. Sin conexión, una página que no se puede descargar lo dice y se abre sola al volver la conexión.
+- Seguridad: dos funciones internas ya no se pueden llamar desde fuera, y las imágenes del club solo las sustituye o borra la Dirección o quien las subió (migración 012).
+
 ## v0.22.0 · 27/11/2026 · Panel del profesor (Prompt 17)
 
 - Panel del profesor (#/profesor): crear, renombrar y archivar clases; cada clase muestra su código de 6 caracteres con botón de copiar y opción de cambiarlo.

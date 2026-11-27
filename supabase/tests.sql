@@ -609,6 +609,21 @@ begin
   select count(*) into cnt from public.club_principles where club_id = c_a;
   names := names || 'Otro club: no ve tu metodología'::text; oks := oks || (cnt = 0);
 
+  -- ---------- Auditoría (v0.23.0) ----------
+  perform set_config('request.jwt.claims', json_build_object('sub', u_b, 'role', 'authenticated')::text, true);
+  begin
+    perform public.club_template_for(c_a, 'morfociclo', '');
+    ok_ := false;
+  exception when insufficient_privilege then ok_ := true;
+  end;
+  names := names || 'Auditoría: nadie lee plantillas de otro club con su id'::text; oks := oks || ok_;
+  begin
+    perform public.match_slot(m_g);
+    ok_ := false;
+  exception when insufficient_privilege then ok_ := true;
+  end;
+  names := names || 'Auditoría: nadie consulta la hora de un partido ajeno con su id'::text; oks := oks || ok_;
+
   -- ---------- Sin sesión ----------
   execute 'reset role';
   perform set_config('request.jwt.claims', '', true);

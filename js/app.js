@@ -1,7 +1,8 @@
 // Arranque: tema, sesión, cabecera, novedades, estado de la conexión y router.
 import { APP_VERSION, CHANGELOG } from './version.js';
 import { isConfigured, checkConnection } from './supabase.js';
-import { esc, toast, errMsg } from './ui.js';
+import { esc, toast, errMsg, ask } from './ui.js';
+import { flushAll, flushQueue, pendingCount } from './store.js';
 import { startRouter, rerender } from './router.js';
 import { initNav, renderNav } from './nav.js';
 import {
@@ -27,6 +28,31 @@ function store(key, value) {
 function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
   document.querySelector('meta[name="theme-color"]').content = theme === 'light' ? '#f3f5f7' : '#0f1419';
+  applyAccentText();
+}
+
+// Color del club como TEXTO: se aclara (tema oscuro) u oscurece (tema claro) hasta llegar a 4,5:1 de contraste.
+const lum = (hex) => {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; })
+    .reduce((a, v, i) => a + v * [0.2126, 0.7152, 0.0722][i], 0);
+};
+const contrast = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+const mix = (hex, to, t) => {
+  const a = parseInt(hex.slice(1), 16), b = parseInt(to.slice(1), 16);
+  const c = [16, 8, 0].map((sh) => Math.round(((a >> sh) & 255) * (1 - t) + ((b >> sh) & 255) * t));
+  return '#' + c.map((v) => v.toString(16).padStart(2, '0')).join('');
+};
+export function textTone(hex, theme) {
+  const base = /^#[0-9a-f]{6}$/i.test(hex || '') ? hex : '#22c55e';
+  const bg = theme === 'light' ? '#eef1f4' : '#1f2832';            // el fondo más desfavorable de cada tema
+  const to = theme === 'light' ? '#000000' : '#ffffff';
+  for (let t = 0; t <= 1; t += 0.05) { const c = mix(base, to, t); if (contrast(c, bg) >= 4.5) return c; }
+  return to;
+}
+function applyAccentText() {
+  const theme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+  document.documentElement.style.setProperty('--accent-text', textTone(S.club?.primary_color, theme));
 }
 // Orden: lo que elige cada persona en su dispositivo (◐) > tema del club > sistema.
 const systemTheme = () => (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
@@ -71,9 +97,11 @@ function renderHeader() {
     root.setProperty('--accent', club.primary_color);
     root.setProperty('--accent-2', club.secondary_color);
     root.setProperty('--accent-ink', readableInk(club.primary_color));
+    applyAccentText();
     document.documentElement.dataset.font = club.font || 'saira';
   } else {
     ['--accent', '--accent-2', '--accent-ink'].forEach((p) => root.removeProperty(p));
+    applyAccentText();
     delete document.documentElement.dataset.font;
   }
 
@@ -167,6 +195,11 @@ menu.addEventListener('click', async (ev) => {
     try { await stopViewing(); location.hash = '#/profesor'; } catch (err) { toast(errMsg(err), 'err'); }
   }
   if (el.dataset.action === 'logout') {
+    // Primero se guarda lo que esté a medias; si algo no se puede enviar (sin conexión), se avisa antes de perderlo.
+    try { await flushAll(); await flushQueue(); } catch { /* se avisa abajo */ }
+    const n = pendingCount();
+    if (n && !(await ask(`Tienes ${n === 1 ? 'un cambio' : `${n} cambios`} sin guardar porque no hay conexión. Si cierras la sesión ahora, se perderán. Espera a tener conexión para no perderlos.`,
+      { title: '¿Cerrar sesión sin guardar?', yes: 'Cerrar sesión igualmente', no: 'Esperar', danger: true }))) return;
     await signOut();
     toast('Has cerrado la sesión.');
     location.hash = '#/login';
