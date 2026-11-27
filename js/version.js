@@ -1,7 +1,19 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.13.1';
+export const APP_VERSION = '0.14.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.14.0',
+    date: '27/11/2026',
+    items: [
+      'Morfociclo (hoja MORFOCICLO): tabla de filas × días con las filas y valores del Excel (principios, grupos, táctica, temática, intensidad, espacio, volumen, intervalos, recuperación, periodos, rivales y estrategia).',
+      'Día de partido configurable y opción «Ver como días respecto al partido» (P+1, P+2, P−4 … P−1, Partido).',
+      'Varios morfociclos por equipo («Semana estándar», «Semana con dos partidos», en blanco o duplicado) y uno predeterminado.',
+      'Celdas editables con guardado automático, filas y secciones añadibles y reordenables, y días coloreados por intensidad (baja, media, alta).',
+      'En el móvil, vista por día.',
+      'Sesiones: al crear una sesión y en su ficha se muestra como guía la columna del día del morfociclo predeterminado.'
+    ]
+  },
   {
     version: '0.13.1',
     date: '27/11/2026',

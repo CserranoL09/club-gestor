@@ -11,6 +11,7 @@ import { mountThread } from '../lib/comments.js';
 import { uploadClubImage, signedUrls } from '../lib/images.js';
 import { objectivesFor, AREAS, canEditMethodology } from '../lib/methodology.js';
 import { STATUS, NEXT_STATUS } from '../lib/players.js';
+import { dayGuide, guideHTML } from '../lib/morpho.js';
 import {
   MATERIAL, OBJECTIVES, STAFF, ROLES, BLOCK_KINDS, newBlock, blockTime, totalTime, blockShort,
   attStatus, participates, dayKey, fromLibrary, toLibrary
@@ -36,7 +37,7 @@ export async function render(el, ctx) {
   const [pl, mem, morpho, club, siblings] = await Promise.all([
     client.from('players').select('id, number, name, position, status, active').eq('team_id', team.id).order('number', { nullsFirst: false }),
     client.from('club_members').select('user_id, role, team_ids, profile:profiles(full_name)').eq('club_id', S.club.id),
-    client.from('morphocycles').select('rows, match_day').eq('team_id', team.id).order('is_default', { ascending: false }).limit(1).maybeSingle(),
+    client.from('morphocycles').select('name, rows, match_day').eq('team_id', team.id).order('is_default', { ascending: false }).limit(1).maybeSingle(),
     objectivesFor(team.category),
     client.from('sessions').select('id, date, time').eq('team_id', team.id).order('date').order('time')
   ]);
@@ -93,7 +94,8 @@ export async function render(el, ctx) {
         <div><label for="sf_time">Hora</label><input id="sf_time" data-g="time" type="time" value="${esc((s.time || '').slice(0, 5))}" ${dis(full)}></div>
         <div><label for="sf_dur">Duración (min)</label><input id="sf_dur" data-g="duration_min" type="number" min="0" max="600" step="5" value="${s.duration_min ?? ''}" ${dis(full)}></div>
       </div>
-      <div data-dist>${distribution()}</div>`;
+      <div data-dist>${distribution()}</div>
+      ${guideHTML(dayGuide(morpho.data, s.date), esc)}`;
   }
 
   function staffHTML() {

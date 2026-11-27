@@ -1,5 +1,14 @@
 # Novedades de Club Gestor
 
+## v0.14.0 · 27/11/2026 · Morfociclo (Prompt 9)
+
+- Morfociclo (hoja MORFOCICLO): tabla de filas × días con las filas y valores del Excel (principios, grupos, táctica, temática, intensidad, espacio, volumen, intervalos, recuperación, periodos, rivales y estrategia).
+- Día de partido configurable y opción «Ver como días respecto al partido» (P+1, P+2, P−4 … P−1, Partido).
+- Varios morfociclos por equipo («Semana estándar», «Semana con dos partidos», en blanco o duplicado) y uno predeterminado.
+- Celdas editables con guardado automático, filas y secciones añadibles y reordenables, y días coloreados por intensidad (baja, media, alta).
+- En el móvil, vista por día.
+- Sesiones: al crear una sesión y en su ficha se muestra como guía la columna del día del morfociclo predeterminado.
+
 ## v0.13.1 · 27/11/2026
 
 - Los periodos de la Periodización y las fases del Macrociclo se pintan con el color exacto de su leyenda (Preparatorio naranja, Competitivo verde, Transición azul).

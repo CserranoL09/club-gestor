@@ -7,6 +7,7 @@ import { MONTHS, fmt } from '../lib/dates.js';
 import { iso } from '../lib/calendar.js';
 import { mountThread } from '../lib/comments.js';
 import { objectivesFor, stageOf, AREAS } from '../lib/methodology.js';
+import { dayGuide, guideHTML } from '../lib/morpho.js';
 import { defaultBlocks, totalTime, taskCount, periodOf, dayKey, MEMBER_STAFF } from '../lib/sessions.js';
 
 export async function render(el, ctx) {
@@ -107,6 +108,13 @@ export async function render(el, ctx) {
   }
   const season = S.seasons.find((s) => s.id === team.season_id);
 
+  let morpho = null;
+  async function loadMorpho() {
+    if (morpho) return morpho;
+    const { data: mo } = await client.from('morphocycles').select('name, rows, match_day').eq('team_id', team.id).order('is_default', { ascending: false }).limit(1).maybeSingle();
+    morpho = mo;
+    return morpho;
+  }
   function dateDialog({ title, date, time, duration, ok }) {
     return new Promise((resolve) => {
       let dlg = document.getElementById('sesDlg');
@@ -120,6 +128,7 @@ export async function render(el, ctx) {
             <div><label for="sd_dur">Duración (min)</label><input id="sd_dur" name="duration" type="number" min="15" max="300" step="5" value="${esc(duration || 90)}"></div>
           </div>
           <p class="hint" id="sd_hint"></p>
+          <div id="sd_guide"></div>
           <div class="dlg-actions"><button class="btn" value="no" formnovalidate>Cancelar</button><button class="btn primary" value="yes">${esc(ok)}</button></div>
         </form>`;
       const f = dlg.querySelector('form');
@@ -127,7 +136,9 @@ export async function render(el, ctx) {
         const p = periodOf(f.date.value, season, null);
         dlg.querySelector('#sd_hint').textContent = f.date.value ? `Microciclo y periodo se rellenan solos${p.microcycle ? ` (semana ${p.microcycle} de la temporada si no hay periodización)` : ''}.` : '';
       };
+      const guide = () => { dlg.querySelector('#sd_guide').innerHTML = guideHTML(dayGuide(morpho, f.date.value), esc); };
       f.date.addEventListener('input', hint); hint();
+      f.date.addEventListener('input', guide); guide();
       dlg.addEventListener('close', () => resolve(dlg.returnValue === 'yes' && f.date.value ? { date: f.date.value, time: f.time.value || null, duration: +f.duration.value || 90 } : null), { once: true });
       dlg.returnValue = '';
       dlg.showModal();
@@ -135,6 +146,7 @@ export async function render(el, ctx) {
   }
 
   async function create(base) {
+    await loadMorpho();
     const v = await dateDialog(base
       ? { title: 'Duplicar sesión', date: nextWeek(base.date), time: base.time?.slice(0, 5), duration: base.duration_min, ok: 'Duplicar' }
       : { title: 'Nueva sesión', date: today, time: '18:00', duration: 90, ok: 'Crear' });
