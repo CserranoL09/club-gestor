@@ -14,6 +14,7 @@ import { STATUS, NEXT_STATUS } from '../lib/players.js';
 import { dayGuide, guideHTML } from '../lib/morpho.js';
 import { printButton, wirePrint, printHead, kv, bar, txt } from '../lib/print.js';
 import { sheetSesion } from '../lib/excelbook.js';
+import { shareOne, downloadJSON } from '../lib/backup.js';
 import { exportBook } from '../lib/xlsx.js';
 import {
   MATERIAL, OBJECTIVES, STAFF, ROLES, BLOCK_KINDS, newBlock, blockTime, totalTime, blockShort,
@@ -267,7 +268,7 @@ export async function render(el, ctx) {
           ${prev ? `<a class="btn icon-btn" href="#/sesiones/${esc(prev.id)}" aria-label="Sesión anterior">‹</a>` : ''}
           <a class="btn" href="#/sesiones">Sesiones</a>
           ${next ? `<a class="btn icon-btn" href="#/sesiones/${esc(next.id)}" aria-label="Sesión siguiente">›</a>` : ''}
-          <button class="btn" type="button" data-xlsx>Excel</button>${printButton()}
+          <button class="btn" type="button" data-share title="Descargar en JSON para pasarlo a otro club">Compartir</button><button class="btn" type="button" data-xlsx>Excel</button>${printButton()}
         </div>
       </div>
       ${note}
@@ -301,6 +302,7 @@ export async function render(el, ctx) {
   function wire() {
     el.querySelectorAll('details.ses-sec').forEach((d) => d.addEventListener('toggle', () => { if (d.open) openSecs.add(d.dataset.sec); else openSecs.delete(d.dataset.sec); }));
     wirePrint(el, () => printView());
+    el.querySelector('[data-share]').addEventListener('click', () => { downloadJSON(shareOne('session', { ...s, blocks, objectives: obj, material: mat, staff, attendance: att }, players, team), `Sesion ${s.date} ${team.name}`); toast('Sesión descargada en JSON: en el otro club, Sesiones → Importar sesión.'); });
     el.querySelector('[data-xlsx]').addEventListener('click', (ev) => busy(ev.currentTarget, () => exportBook(`Sesión ${s.number || ''} ${s.date} ${team.name}`, [sheetSesion([{ ...s, blocks, objectives: obj, material: mat, staff, attendance: att }], team, players)])));
     if (!anyEdit) return;
 

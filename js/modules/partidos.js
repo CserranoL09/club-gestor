@@ -1,10 +1,11 @@
 // Partidos del equipo (#/partidos): jornada, fecha, local/visitante, resultado y estado.
 // «Nuevo partido» y «Pegar calendario». El Prepartido está en prepartido.js.
-import { esc, toast, busy, ask, permNote } from '../ui.js';
+import { esc, toast, busy, ask, permNote, errMsg } from '../ui.js';
 import { sb } from '../supabase.js';
 import { S, permission, canEditTeam } from '../session.js';
 import { fmt } from '../lib/dates.js';
 import { mountThread } from '../lib/comments.js';
+import { readJSON, importOne } from '../lib/backup.js';
 import { matchStatus, sides, score, parseFixtures } from '../lib/matches.js';
 
 export async function render(el, ctx) {
@@ -29,7 +30,7 @@ export async function render(el, ctx) {
   el.innerHTML = `
     <div class="page-head">
       <div><h1>📋 Partidos</h1><p>${esc(team.name)} · ${all.length} ${all.length === 1 ? 'partido' : 'partidos'}</p></div>
-      ${canCreate ? `<div class="actions"><a class="btn" href="#/partidos?panel=pegar">Pegar calendario</a><button class="btn primary" type="button" data-new>+ Nuevo partido</button></div>` : ''}
+      ${canCreate ? `<div class="actions"><label class="btn">Importar partido<input type="file" accept=".json,application/json" data-import1 hidden></label><a class="btn" href="#/partidos?panel=pegar">Pegar calendario</a><button class="btn primary" type="button" data-new>+ Nuevo partido</button></div>` : ''}
     </div>
     ${canCreate ? '' : permNote(perm.ok ? { ok: false, reason: 'Los partidos los crea el entrenador principal; tú puedes preparar la convocatoria y el acta.' } : perm)}
     <div id="panel"></div>
@@ -61,6 +62,17 @@ export async function render(el, ctx) {
   const again = () => render(el, ctx);
 
   // ---------- Nuevo partido
+  el.querySelector('[data-import1]')?.addEventListener('change', async (ev) => {
+    const file = ev.target.files[0]; ev.target.value = '';
+    if (!file) return;
+    try {
+      const obj = await readJSON(file);
+      const { data: pl } = await sb().from('players').select('id, number, name, active').eq('team_id', team.id);
+      const r = await importOne(obj, 'match', team, pl || []);
+      toast(r.missing.length ? `Partido importado. Sin estos jugadores (no están en tu plantilla): ${r.missing.join(', ')}.` : 'Partido importado.', r.missing.length ? 'err' : 'ok', r.missing.length ? 8000 : 3600);
+      location.hash = `#/partidos/${r.id}/prepartido`;
+    } catch (err) { toast(errMsg(err), 'err', 6000); }
+  });
   el.querySelector('[data-new]')?.addEventListener('click', () => {
     let dlg = document.getElementById('matchDlg');
     if (!dlg) { dlg = document.createElement('dialog'); dlg.id = 'matchDlg'; document.body.appendChild(dlg); }

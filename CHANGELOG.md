@@ -1,5 +1,11 @@
 # Novedades de Club Gestor
 
+## v0.21.0 · 27/11/2026 · Copia de seguridad JSON (Prompt 16)
+
+- Configuración → Copia de seguridad: «Descargar copia» guarda todo el club en un JSON (temporadas, equipos, plantillas, sesiones, biblioteca de tareas, metodología, periodizaciones, macrociclos, morfociclos, partidos e instalaciones), sin datos de otras personas ni comentarios. Las imágenes se pueden incluir, con aviso si la copia es grande.
+- «Restaurar copia»: crear un club nuevo con la copia, o reemplazar el equipo o la temporada activos. Se valida el formato, se generan id nuevos manteniendo todas las relaciones (convocatorias, eventos, asistencia, notas, horarios, principios) y se limpia cada campo.
+- «Compartir» en la sesión, el prepartido y el postpartido descarga un JSON con esa sesión o ese partido; en otro club se importa desde la lista de Sesiones o de Partidos y los jugadores se emparejan por nombre o dorsal.
+
 ## v0.20.0 · 27/11/2026 · Excel: exportar e importar (Prompt 15)
 
 - Configuración → Excel: «Exportar temporada a Excel» descarga un .xlsx con las hojas SESIÓN (una fila por sesión y bloque), PERIODIZACIÓN, MACROCICLO, MORFOCICLO, PREPARTIDO, PARTIDO, POSTPARTIDO (jornadas en columnas, como tu plantilla), PLANTILLA y ESTADÍSTICAS, con fechas reales de Excel, anchos de columna y cabeceras fijas.

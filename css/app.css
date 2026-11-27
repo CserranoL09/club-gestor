@@ -1546,3 +1546,10 @@ body.has-nav .update-bar { bottom: calc(84px + env(safe-area-inset-bottom)); }
 .imp-item span { min-width: 0; overflow-wrap: anywhere; }
 .imp-item small { display: block; }
 .warn-text b, b.warn-text { color: var(--warn); }
+
+/* ===== v0.21.0 · Copia de seguridad (Prompt 16) ===== */
+.bk-sum { margin: 8px 0 12px; padding-left: 18px; }
+.bk-sum li { margin: 4px 0; overflow-wrap: anywhere; }
+.bk-modes .check { align-items: flex-start; margin: 10px 0 4px; }
+.bk-opt { margin: 0 0 8px 30px; max-width: 420px; }
+.bk-opt input, .bk-opt select { width: 100%; }

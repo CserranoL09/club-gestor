@@ -1,6 +1,6 @@
 // Sesiones del equipo (#/sesiones): lista por microciclo, filtros, nueva, duplicar y borrar.
 // La ficha (#/sesiones/:id) está en sesion.js.
-import { esc, toast, busy, ask, permNote } from '../ui.js';
+import { esc, toast, busy, ask, permNote, errMsg } from '../ui.js';
 import { sb } from '../supabase.js';
 import { S, permission, canEditTeam } from '../session.js';
 import { MONTHS, fmt } from '../lib/dates.js';
@@ -8,6 +8,7 @@ import { iso } from '../lib/calendar.js';
 import { mountThread } from '../lib/comments.js';
 import { objectivesFor, stageOf, AREAS } from '../lib/methodology.js';
 import { dayGuide, guideHTML } from '../lib/morpho.js';
+import { readJSON, importOne } from '../lib/backup.js';
 import { defaultBlocks, totalTime, taskCount, periodOf, dayKey, MEMBER_STAFF } from '../lib/sessions.js';
 
 export async function render(el, ctx) {
@@ -49,7 +50,7 @@ export async function render(el, ctx) {
   el.innerHTML = `
     <div class="page-head">
       <div><h1>⚽ Sesiones</h1><p>${esc(team.name)} · ${esc(S.season?.name || '')} · ${all.length} ${all.length === 1 ? 'sesión' : 'sesiones'}</p></div>
-      ${canCreate ? '<button class="btn primary" type="button" data-new>+ Nueva sesión</button>' : ''}
+      ${canCreate ? `<div class="actions"><label class="btn">Importar sesión<input type="file" accept=".json,application/json" data-import1 hidden></label><button class="btn primary" type="button" data-new>+ Nueva sesión</button></div>` : ''}
     </div>
     ${permNote(perm)}
     <div class="filters no-print">
@@ -177,6 +178,17 @@ export async function render(el, ctx) {
   }
   const nextWeek = (d) => { const x = new Date(d + 'T00:00:00'); x.setDate(x.getDate() + 7); return iso(x); };
 
+  el.querySelector('[data-import1]')?.addEventListener('change', async (ev) => {
+    const file = ev.target.files[0]; ev.target.value = '';
+    if (!file) return;
+    try {
+      const obj = await readJSON(file);
+      const { data: pl } = await sb().from('players').select('id, number, name, active').eq('team_id', team.id);
+      const r = await importOne(obj, 'session', team, pl || []);
+      toast(r.missing.length ? `Sesión importada. Sin estos jugadores (no están en tu plantilla): ${r.missing.join(', ')}.` : 'Sesión importada.', r.missing.length ? 'err' : 'ok', r.missing.length ? 8000 : 3600);
+      location.hash = `#/sesiones/${r.id}`;
+    } catch (err) { toast(errMsg(err), 'err', 6000); }
+  });
   el.querySelector('[data-new]')?.addEventListener('click', (ev) => busy(ev.currentTarget, () => create(null)));
   el.querySelectorAll('[data-dup]').forEach((b) => b.addEventListener('click', () => busy(b, () => create(all.find((s) => s.id === b.closest('[data-id]').dataset.id)))));
   el.querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', async () => {

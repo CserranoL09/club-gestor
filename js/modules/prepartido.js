@@ -9,6 +9,7 @@ import { mountThread } from '../lib/comments.js';
 import { STATUS, POSITIONS } from '../lib/players.js';
 import { printButton, wirePrint, printHead, bar, txt } from '../lib/print.js';
 import { sheetPrepartido } from '../lib/excelbook.js';
+import { shareOne, downloadJSON } from '../lib/backup.js';
 import { exportBook } from '../lib/xlsx.js';
 import { SYSTEMS, starters, squadMax, sides, score } from '../lib/matches.js';
 
@@ -54,7 +55,7 @@ export async function render(el, ctx) {
       <div class="page-head">
         <div><p class="eyebrow">${m.matchday != null ? `Jornada ${m.matchday} · ` : ''}${m.date ? esc(fmt(new Date(m.date + 'T00:00:00'))) : 'Sin fecha'}${m.time ? ` · ${esc(m.time.slice(0, 5))}` : ''}</p>
           <h1 class="match-title"><span class="${m.is_home ? 'us' : ''}">${esc(home)}</span> <span class="vs">${esc(score(m)) || 'vs'}</span> <span class="${m.is_home ? '' : 'us'}">${esc(away)}</span></h1></div>
-        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a><button class="btn" type="button" data-xlsx>Excel</button>${printButton([['list', 'Convocatoria'], ['system', 'Convocatoria con el sistema'], ['full', 'Prepartido completo (cuerpo técnico)']])}</div>
+        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a><button class="btn" type="button" data-share title="Descargar en JSON para pasarlo a otro club">Compartir</button><button class="btn" type="button" data-xlsx>Excel</button>${printButton([['list', 'Convocatoria'], ['system', 'Convocatoria con el sistema'], ['full', 'Prepartido completo (cuerpo técnico)']])}</div>
       </div>
       <nav class="tabs page-tabs no-print" aria-label="Partido">
         <a class="tab" href="#/partidos/${esc(m.id)}/prepartido" aria-current="page">Prepartido</a>
@@ -165,6 +166,7 @@ export async function render(el, ctx) {
     </svg>`;
   }
   function wireXlsx(root) {
+    root.querySelector('[data-share]').addEventListener('click', () => { downloadJSON(shareOne('match', m, players, team), `Partido J${m.matchday ?? ''} ${team.name}`); toast('Partido descargado en JSON: en el otro club, Partidos → Importar partido.'); });
     root.querySelector('[data-xlsx]').addEventListener('click', (ev) => busy(ev.currentTarget, () => exportBook(`Prepartido J${m.matchday ?? ''} ${team.name}`, [sheetPrepartido([m], team, players)])));
   }
   function printView(opt) {
