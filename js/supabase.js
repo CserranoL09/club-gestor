@@ -1,7 +1,8 @@
 // Cliente único de Supabase. Si js/config.js sigue con valores de ejemplo, no se carga la librería.
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
-export const SUPABASE_JS_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/+esm';
+// Copia local (js/vendor) en vez de un CDN: el código que maneja la sesión no depende de terceros.
+export const SUPABASE_JS_URL = './vendor/supabase-js-2.118.0.min.js';
 
 export const isConfigured =
   /^https:\/\/[a-z0-9-]+\.supabase\.co\/?$/i.test(SUPABASE_URL) &&

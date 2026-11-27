@@ -1592,3 +1592,8 @@ body.has-nav .update-bar { bottom: calc(84px + env(safe-area-inset-bottom)); }
 .old-browser body > :not(.old-browser-msg) { display: none !important; }
 .old-browser-msg { max-width: 560px; margin: 15vh auto; padding: 24px; border-radius: 16px; background: var(--surface); color: var(--ink); border: 1px solid var(--line); font: 1rem/1.5 system-ui, sans-serif; }
 .old-browser-msg h1 { font-size: 1.3rem; margin: 0 0 8px; }
+/* Marcador de comentarios de las secciones plegables: fuera del <summary> (accesibilidad) */
+.sec-wrap { position: relative; }
+.sec-wrap + .sec-wrap, .sec-wrap + .ses-sec, .ses-sec + .sec-wrap { margin-top: 12px; }
+.sec-wrap > details > summary { padding-right: 56px; }
+.sec-cmt.over-summary { position: absolute; margin: 0; z-index: 2; }

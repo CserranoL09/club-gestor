@@ -139,6 +139,48 @@ export function downloadJSON(obj, name) {
   return text.length;
 }
 
+// ======================================================================= imágenes sin usar
+/** Todas las rutas de imágenes que aparecen en cualquier dato del club. */
+function referencedPaths(data) {
+  const set = new Set();
+  const walk = (v) => { if (typeof v === 'string') { if (IMG_PATH.test(v)) set.add(v); } else if (v && typeof v === 'object') Object.values(v).forEach(walk); };
+  walk(data);
+  return set;
+}
+/** Lista recursiva de los archivos del club en Storage. */
+async function listFiles(prefix, out = []) {
+  for (let offset = 0; ; offset += 1000) {
+    const { data, error } = await sb().storage.from('club-files').list(prefix, { limit: 1000, offset, sortBy: { column: 'name', order: 'asc' } });
+    if (error) throw error;
+    for (const f of data || []) {
+      if (f.id === null) await listFiles(`${prefix}/${f.name}`, out);
+      else out.push({ path: `${prefix}/${f.name}`, size: f.metadata?.size || 0, created: f.created_at });
+    }
+    if (!data || data.length < 1000) break;
+  }
+  return out;
+}
+/**
+ * Imágenes del club que ya no usa nada (tareas o principios borrados, imágenes cambiadas…).
+ * Se dejan las subidas en la última hora, por si alguien las está usando en ese momento.
+ */
+export async function findUnusedImages(clubId = S.club.id) {
+  const [data, files] = await Promise.all([collectClub(clubId), listFiles(clubId)]);
+  const used = referencedPaths(data);
+  const recent = Date.now() - 3600e3;
+  const unused = files.filter((f) => !used.has(f.path) && (!f.created || new Date(f.created).getTime() < recent));
+  return { total: files.length, unused, bytes: unused.reduce((n, f) => n + f.size, 0) };
+}
+export async function deleteImages(paths) {
+  let n = 0;
+  for (let i = 0; i < paths.length; i += 100) {
+    const { data, error } = await sb().storage.from('club-files').remove(paths.slice(i, i + 100));
+    if (error) throw error;
+    n += (data || []).length;
+  }
+  return n;
+}
+
 // ======================================================================= leer y validar
 export async function readJSON(file) {
   if (file.size > MAX_BYTES) throw new Error(`El archivo pasa de ${MAX_BYTES / 1024 / 1024} MB.`);

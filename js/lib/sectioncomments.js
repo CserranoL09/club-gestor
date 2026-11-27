@@ -75,7 +75,22 @@ export async function decorateSections(main, route, params) {
       btn.title = n ? `${n.all} ${n.all === 1 ? 'comentario' : 'comentarios'} en «${title}»${n.open ? ` (${n.open} sin resolver)` : ''}` : `Comentar «${title}»`;
       btn.setAttribute('aria-label', btn.title);
       btn.innerHTML = `💬${n ? `<span>${n.open || n.all}</span>` : '<span class="plus">+</span>'}`;
-      h.appendChild(btn);
+      const summary = h.closest('summary');
+      if (summary && summary.parentElement?.tagName === 'DETAILS') {
+        // Un botón dentro de <summary> se anuncia mal con lector de pantalla y abre/cierra la sección:
+        // va fuera, en una envoltura, colocado encima del final del título.
+        const det = summary.parentElement;
+        let wrap = det.parentElement?.classList.contains('sec-wrap') ? det.parentElement : null;
+        if (!wrap) { wrap = document.createElement('div'); wrap.className = 'sec-wrap'; det.before(wrap); wrap.appendChild(det); }
+        btn.classList.add('over-summary');
+        wrap.appendChild(btn);
+        const place = () => {
+          btn.style.top = `${summary.offsetTop + Math.max(0, (summary.offsetHeight - btn.offsetHeight) / 2)}px`;
+          btn.style.right = `${Math.max(0, wrap.clientWidth - (summary.offsetLeft + summary.offsetWidth)) + 8}px`;
+        };
+        place();
+        new ResizeObserver(place).observe(summary);
+      } else h.appendChild(btn);
       btn.addEventListener('click', async (ev) => {
         ev.preventDefault(); ev.stopPropagation();
         const host = h.closest('summary') ? h.closest('details') : h;

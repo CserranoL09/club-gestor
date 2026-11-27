@@ -1,5 +1,5 @@
 // Unirse a la clase de un profesor con su código (#/unirse).
-import { esc, toast, busy, ask, formValues } from '../ui.js';
+import { esc, toast, busy, ask, formValues, errMsg } from '../ui.js';
 import { sb } from '../supabase.js';
 import { S, refresh } from '../session.js';
 import { clubFormHTML, wireClubForm, createClubFromForm } from './club-form.js';
@@ -41,8 +41,8 @@ export async function render(el) {
         if (!clubId) return;
         const { data: className, error } = await sb().rpc('join_class', { p_code: code, p_club: clubId });
         await refresh(clubId);
-        if (error) {
-          toast('El club se ha creado, pero el código no es válido. Pruébalo otra vez aquí.', 'err', 7000);
+        if (error || !className) {
+          toast(error ? `El club se ha creado, pero no se ha podido unir a la clase: ${errMsg(error)}` : 'El club se ha creado, pero no hay ninguna clase con ese código. Pruébalo otra vez aquí.', 'err', 7000);
           location.hash = '#/unirse';
           return;
         }
@@ -90,6 +90,7 @@ export async function render(el) {
     await busy(form.querySelector('[type=submit]'), async () => {
       const { data: className, error } = await sb().rpc('join_class', { p_code: code, p_club: v.club });
       if (error) throw error;
+      if (!className) { toast('No hay ninguna clase con ese código. Revísalo con tu profesor.', 'err', 6000); return; }
       await refresh(v.club);
       toast(`Club unido a la clase «${className}».`);
       location.hash = '#/inicio';

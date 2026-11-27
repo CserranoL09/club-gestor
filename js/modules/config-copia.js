@@ -2,7 +2,7 @@
 import { esc, toast, busy, ask, errMsg } from '../ui.js';
 import { S, isAdmin, canEditTeam, refresh, reloadClubData } from '../session.js';
 import { fmt } from '../lib/dates.js';
-import { buildBackup, downloadJSON, readJSON, validateBackup, summary, imagePaths, restoreAsNewClub, replaceTeam, replaceSeason } from '../lib/backup.js';
+import { findUnusedImages, deleteImages, buildBackup, downloadJSON, readJSON, validateBackup, summary, imagePaths, restoreAsNewClub, replaceTeam, replaceSeason } from '../lib/backup.js';
 
 const pl = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 const mb = (n) => `${(n / 1024 / 1024).toLocaleString('es-ES', { maximumFractionDigits: 1 })} MB`;
@@ -23,6 +23,12 @@ export async function render(el) {
       <label class="btn">Elegir copia…<input type="file" accept=".json,application/json" data-file hidden></label>
       <div data-restore></div>
     </section>
+    ${isAdmin() ? `<section class="card">
+      <h2>🧹 Imágenes sin usar</h2>
+      <p>Al cambiar o quitar la imagen de una tarea, o al borrar sesiones, tareas o principios, la imagen se queda guardada por si otra copia la usa. Aquí puedes buscar las que ya no usa nada y borrarlas para no llenar el espacio gratuito (1 GB).</p>
+      <button class="btn" type="button" data-scan>Buscar imágenes sin usar</button>
+      <div data-scan-out></div>
+    </section>` : ''}
     <p class="hint">Para pasar un solo partido o una sola sesión a otro club, usa «Compartir» en su página y «Importar» en la lista de Partidos o de Sesiones.</p>`;
 
   el.querySelector('[data-down]').addEventListener('click', (ev) => busy(ev.currentTarget, async () => {
@@ -34,6 +40,19 @@ export async function render(el) {
     if (size > 10 * 1024 * 1024 && !(await ask(`La copia ocupa ${mb(size)} por las imágenes. ¿Descargarla igualmente?`, { title: 'Copia grande', yes: 'Descargar' }))) return;
     downloadJSON(b, `Copia ${S.club.short_name || S.club.name}`);
     toast(`Copia descargada (${mb(size)}).`);
+  }));
+
+  el.querySelector('[data-scan]')?.addEventListener('click', (ev) => busy(ev.currentTarget, async () => {
+    const out = el.querySelector('[data-scan-out]');
+    const r = await findUnusedImages();
+    if (!r.unused.length) { out.innerHTML = `<p class="success">Todo en orden: las ${r.total} imágenes del club se usan.</p>`; return; }
+    out.innerHTML = `<p>${pl(r.unused.length, 'imagen sin usar', 'imágenes sin usar')} de ${r.total} (${mb(r.bytes)}).</p><button class="btn danger" type="button" data-clean>Borrar ${pl(r.unused.length, 'imagen', 'imágenes')}</button>`;
+    out.querySelector('[data-clean]').addEventListener('click', (e2) => busy(e2.currentTarget, async () => {
+      if (!(await ask(`Se borrarán ${pl(r.unused.length, 'imagen que no usa', 'imágenes que no usa')} ninguna sesión, tarea, principio ni el escudo. No se puede deshacer; si quieres conservarlas, descarga antes una copia con imágenes.`, { title: '¿Borrar imágenes sin usar?', yes: 'Borrar', danger: true }))) return;
+      const n = await deleteImages(r.unused.map((f) => f.path));
+      out.innerHTML = `<p class="success">${pl(n, 'imagen borrada', 'imágenes borradas')}.</p>`;
+      toast('Imágenes sin usar borradas.');
+    }));
   }));
 
   el.querySelector('[data-file]').addEventListener('change', async (ev) => {

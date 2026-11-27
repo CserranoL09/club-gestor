@@ -3,6 +3,19 @@ import { esc, toast, busy, formValues } from '../ui.js';
 import { isConfigured, sb } from '../supabase.js';
 import { S, appBaseUrl, refresh } from '../session.js';
 
+// Contraseñas: al menos 8 caracteres y que no sean de las más usadas ni el propio email.
+const COMMON = ['12345678', '123456789', '1234567890', 'password', 'contraseña', 'contrasena', 'qwertyui', 'qwerty123', 'futbol123', 'football', 'iloveyou',
+  'abcd1234', '11111111', '00000000', '87654321', 'password1', 'admin123', 'clubgestor', 'entrenador', 'barcelona', 'realmadrid', 'atletico'];
+export function passwordProblem(pw, email = '') {
+  const p = String(pw || '');
+  if (p.length < 8) return 'La contraseña debe tener al menos 8 caracteres.';
+  const low = p.toLowerCase();
+  if (COMMON.includes(low) || /^(.)\1+$/.test(p) || /^(0123456789|123456789|abcdefgh)/.test(low)) return 'Esa contraseña es de las más usadas: elige otra.';
+  const user = String(email).split('@')[0].toLowerCase();
+  if (user.length >= 4 && low.includes(user)) return 'La contraseña no puede contener tu email.';
+  return '';
+}
+
 const TABS = [
   ['entrar', 'Entrar'],
   ['registro', 'Crear cuenta'],
@@ -62,8 +75,9 @@ export async function render(el, ctx) {
         <label for="full_name">Nombre y apellidos</label>
         <input id="full_name" name="full_name" autocomplete="name" required maxlength="80">
         ${email}
-        <label for="password">Contraseña (mínimo 6 caracteres)</label>
-        <input id="password" name="password" type="password" autocomplete="new-password" required minlength="6">
+        <label for="password">Contraseña</label>
+        <input id="password" name="password" type="password" autocomplete="new-password" required minlength="8" aria-describedby="pwHelp">
+        <p class="hint" id="pwHelp">Mínimo 8 caracteres. Apúntala bien: si la olvidas, puede que no te llegue el correo para recuperarla.</p>
         <label class="check"><input type="checkbox" name="is_teacher"> Soy profesor/a y quiero crear clases para mis alumnos</label>
         <button class="btn primary" type="submit">Crear cuenta</button>
       </form>`;
@@ -96,7 +110,8 @@ export async function render(el, ctx) {
         // La sesión avisa al resto de la app y se va al inicio.
       } else if (tab === 'registro') {
         if (!v.full_name) { toast('Escribe tu nombre.', 'err'); return; }
-        if ((v.password || '').length < 6) { toast('La contraseña debe tener al menos 6 caracteres.', 'err'); return; }
+        const bad = passwordProblem(v.password, v.email);
+        if (bad) { toast(bad, 'err', 5000); return; }
         const { data, error } = await auth.signUp({
           email: v.email,
           password: v.password,
@@ -139,10 +154,10 @@ function renderNewPassword(el) {
       <h1>Contraseña nueva</h1>
       <p class="hint">Para ${esc(S.user.email)}</p>
       <form novalidate>
-        <label for="p1">Contraseña nueva (mínimo 6 caracteres)</label>
-        <input id="p1" name="p1" type="password" autocomplete="new-password" minlength="6" required>
+        <label for="p1">Contraseña nueva (mínimo 8 caracteres)</label>
+        <input id="p1" name="p1" type="password" autocomplete="new-password" minlength="8" required>
         <label for="p2">Repite la contraseña</label>
-        <input id="p2" name="p2" type="password" autocomplete="new-password" minlength="6" required>
+        <input id="p2" name="p2" type="password" autocomplete="new-password" minlength="8" required>
         <button class="btn primary" type="submit">Guardar contraseña</button>
       </form>
     </div>`;
@@ -151,7 +166,8 @@ function renderNewPassword(el) {
   f.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const v = formValues(f);
-    if (v.p1.length < 6) { toast('La contraseña debe tener al menos 6 caracteres.', 'err'); return; }
+    const bad = passwordProblem(v.p1, S.user?.email);
+    if (bad) { toast(bad, 'err', 5000); return; }
     if (v.p1 !== v.p2) { toast('Las dos contraseñas no coinciden.', 'err'); return; }
     await busy(f.querySelector('[type=submit]'), async () => {
       const { error } = await sb().auth.updateUser({ password: v.p1 });

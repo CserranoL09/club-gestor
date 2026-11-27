@@ -624,6 +624,23 @@ begin
   end;
   names := names || 'Auditoría: nadie consulta la hora de un partido ajeno con su id'::text; oks := oks || ok_;
 
+  -- Códigos de clase: los intentos fallidos se limitan
+  perform set_config('request.jwt.claims', json_build_object('sub', u_b, 'role', 'authenticated')::text, true);
+  for i in 1 .. 10 loop perform public.join_class('ZZZZZ' || i, c_b); end loop;
+  begin
+    perform public.join_class('ZZZZZZ', c_b);
+    ok_ := false;
+  exception when others then ok_ := sqlerrm like 'Demasiados%';
+  end;
+  names := names || 'Auditoría: los códigos de clase no se pueden probar sin límite'::text; oks := oks || ok_;
+  -- Datos guardados en bloque con la forma correcta
+  begin
+    insert into public.sessions (team_id, date, blocks) values (t_b, current_date, '{"no":"lista"}'::jsonb);
+    ok_ := false;
+  exception when check_violation then ok_ := true;
+  end;
+  names := names || 'Auditoría: no se guardan datos con forma incorrecta'::text; oks := oks || ok_;
+
   -- ---------- Sin sesión ----------
   execute 'reset role';
   perform set_config('request.jwt.claims', '', true);

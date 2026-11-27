@@ -89,7 +89,8 @@ export function startRouter(main, { guard = () => null } = {}) {
       if (mine !== seq) return;
       if (offline) {
         // Sin conexión no se puede descargar el código de esta página: se recarga sola al volver la conexión.
-        main.innerHTML = '<div class="card empty"><div class="big">📡</div><h2>Sin conexión</h2><p>Esta página se abrirá cuando vuelva la conexión.</p><p><button class="btn" type="button" onclick="location.reload()">Reintentar</button></p></div>';
+        main.innerHTML = '<div class="card empty"><div class="big">📡</div><h2>Sin conexión</h2><p>Esta página se abrirá cuando vuelva la conexión.</p><p><button class="btn" type="button" data-retry>Reintentar</button></p></div>';
+        main.querySelector('[data-retry]').addEventListener('click', () => location.reload());
         window.addEventListener('online', () => location.reload(), { once: true });
       } else {
         main.innerHTML = '<div class="card empty"><div class="big">⚠</div><h2>No se ha podido abrir esta página</h2><p>Recarga la página. Si sigue fallando, copia el error de la consola (F12).</p></div>';

@@ -1,7 +1,20 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.23.0';
+export const APP_VERSION = '0.24.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.24.0',
+    date: '27/11/2026',
+    items: [
+      'Imágenes sin usar: en Configuración → Copia de seguridad, la Dirección puede buscar las imágenes que ya no usa ninguna sesión, tarea, principio ni el escudo, y borrarlas para no llenar el espacio gratuito.',
+      'La librería de Supabase se sirve desde la propia web (no desde un CDN) y la página lleva una política de seguridad de contenidos (CSP): aunque se colara código ajeno, el navegador no lo ejecutaría.',
+      'Códigos de clase: con un código que no existe sale un mensaje claro, y tras 10 intentos fallidos en una hora se bloquea hasta la hora siguiente.',
+      'Contraseñas nuevas: mínimo 8 caracteres, ninguna de las más usadas ni que contenga tu email, con aviso de apuntarla bien.',
+      'Accesibilidad: el botón 💬 de comentarios ya no está dentro del título de las secciones plegables.',
+      'Base de datos: los datos guardados en bloque se comprueban al guardar, reglas de acceso más rápidas, índices nuevos y ninguna función interna se puede llamar sin iniciar sesión (migraciones 013 y 014).',
+      'Para que Supabase no pause el proyecto en vacaciones: una consulta diaria automática desde GitHub (Actions → «Mantener Supabase activo»).'
+    ]
+  },
   {
     version: '0.23.0',
     date: '27/11/2026',
