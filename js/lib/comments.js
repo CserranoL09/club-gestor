@@ -6,10 +6,14 @@ import { S, canSupervise, isMyTeam, isTeacher } from '../session.js';
 import { MODULES } from '../modules/list.js';
 
 /** Nombre y enlace de cada apartado comentable. */
-export function entityInfo(entity, entityId) {
+export function entityInfo(entity, entityId, section = '') {
   if (entity === 'team') return { label: 'Equipo (general)', href: '#/inicio' };
   if (entity === 'session' && entityId) return { label: 'Sesión', href: `#/sesiones/${entityId}` };
-  if (entity === 'match' && entityId) return { label: 'Partido', href: `#/partidos/${entityId}/prepartido` };
+  if (entity === 'match' && entityId) {
+    const page = ['prepartido', 'acta', 'postpartido'].find((x) => String(section).startsWith(x + ':')) || 'prepartido';
+    return { label: `Partido · ${{ prepartido: 'Prepartido', acta: 'Acta', postpartido: 'Postpartido' }[page]}`, href: `#/partidos/${entityId}/${page}` };
+  }
+  if (entity === 'macrociclo' && entityId) return { label: 'Macrociclo', href: `#/macrociclo/${entityId}` };
   if (entity === 'player' && entityId) return { label: 'Jugador', href: `#/jugador/${entityId}` };
   const m = MODULES.find((x) => x.key === entity);
   if (m) return { label: m.name, href: m.route };
@@ -19,6 +23,13 @@ export function entityInfo(entity, entityId) {
 /** ¿Puede escribir en los comentarios de este equipo? (la seguridad real la da RLS) */
 export function canCommentTeam(teamId) {
   return !!teamId && (canSupervise(teamId) || isMyTeam(teamId) || isTeacher());
+}
+
+/** Nombre legible de un apartado guardado como «acta:goles-y-tarjetas». */
+export function sectionLabel(section) {
+  if (!section || section === 'general') return '';
+  const t = String(section).replace(/^(prepartido|acta|postpartido):/, '').replace(/-/g, ' ');
+  return t === 'pagina' ? 'Página' : t.charAt(0).toUpperCase() + t.slice(1);
 }
 
 const SELECT = 'id, parent_id, team_id, entity, entity_id, section, author_id, text, resolved, created_at, author:profiles!comments_author_id_fkey(full_name)';

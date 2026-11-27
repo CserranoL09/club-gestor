@@ -37,7 +37,8 @@ export const S = {
   team: null,
   crestUrl: '',
   authNotice: '',      // mensaje que llega en un enlace de email caducado, etc.
-  recovery: false      // se ha abierto un enlace de «recuperar contraseña»
+  recovery: false,     // se ha abierto un enlace de «recuperar contraseña»
+  viewing: null        // profesor viendo el club de un alumno: { clubId, student }
 };
 
 const bus = new EventTarget();
@@ -98,7 +99,7 @@ function authLinkError(code, desc) {
 }
 
 function resetData() {
-  Object.assign(S, { profile: null, memberships: [], member: null, club: null, seasons: [], teams: [], season: null, team: null, crestUrl: '' });
+  Object.assign(S, { viewing: null, profile: null, memberships: [], member: null, club: null, seasons: [], teams: [], season: null, team: null, crestUrl: '' });
 }
 
 // ---------------------------------------------------------------------
@@ -106,6 +107,7 @@ function resetData() {
 // ---------------------------------------------------------------------
 export async function loadUserData() {
   const uid = S.user.id;
+  S.viewing = null;
   const [prof, mems] = await Promise.all([
     sb.from('profiles').select('id, full_name, is_teacher, email').eq('id', uid).maybeSingle(),
     sb.from('club_members').select('role, team_ids, club:clubs(*)').eq('user_id', uid)
@@ -125,6 +127,28 @@ export async function loadUserData() {
 export async function selectClub(clubId, { silent = false } = {}) {
   const m = S.memberships.find((x) => x.club.id === clubId);
   if (!m) return;
+  S.viewing = null;
+  await applyClub(m, silent);
+}
+
+/** Profesor: abre el club de un alumno en solo lectura (no es miembro; RLS le deja leer y comentar). */
+export async function viewClub(clubId, student = '') {
+  const { data: club, error } = await sb.from('clubs').select('*').eq('id', clubId).maybeSingle();
+  if (error) throw error;
+  if (!club) throw new Error('No puedes ver ese club.');
+  S.viewing = { clubId, student: student || club.name };
+  await applyClub({ role: 'profesor', team_ids: [], club }, false);
+}
+
+/** Deja de ver el club del alumno y vuelve a los clubes propios. */
+export async function stopViewing() {
+  S.viewing = null;
+  await loadUserData();
+  emit();
+}
+
+async function applyClub(m, silent) {
+  const clubId = m.club.id;
   S.member = m;
   S.club = m.club;
   const [seasons, teams] = await Promise.all([
@@ -136,7 +160,7 @@ export async function selectClub(clubId, { silent = false } = {}) {
   S.seasons = (seasons.data || []).filter((s) => !s.archived);
   S.teams = teams.data || [];
 
-  const ctx = getCtx();
+  const ctx = S.viewing ? {} : getCtx();
   const sameClub = ctx.clubId === clubId;
   S.season = (sameClub && S.seasons.find((s) => s.id === ctx.seasonId))
     || S.seasons.find((s) => s.is_current) || S.seasons[0] || null;
@@ -216,6 +240,7 @@ export function selectTeam(teamId) {
 }
 
 function saveCtx() {
+  if (S.viewing) return;   // el club del alumno no se recuerda al recargar
   setCtx({ clubId: S.club?.id || null, seasonId: S.season?.id || null, teamId: S.team?.id || null });
 }
 
@@ -263,7 +288,8 @@ export function isClubManager() { return !!S.member && !isPersonalClub() && (S.m
 /** Página de entrada según el perfil. */
 export function homePath() {
   if (!S.user) return '/login';
-  if (!S.memberships.length) return '/bienvenida';
+  if (S.viewing) return '/inicio';
+  if (!S.memberships.length) return isTeacher() ? '/profesor' : '/bienvenida';
   return isClubManager() ? '/club' : '/inicio';
 }
 
@@ -276,7 +302,7 @@ const STAFF = ['entrenador', 'ayudante', 'preparador', 'porteros'];
 
 /** Equipo asignado (o de todos, si es Dirección o no tiene equipos concretos). */
 export function isMyTeam(teamId) { return isAdmin() || hasTeam(teamId, ['coordinador', ...STAFF]); }
-export function canReadTeam(teamId) { return isMyTeam(teamId) || (!!S.member && clubSettings().coaches_see_all); }
+export function canReadTeam(teamId) { return !!S.viewing || isMyTeam(teamId) || (!!S.member && clubSettings().coaches_see_all); }
 export function canSupervise(teamId = S.team?.id) { return isAdmin() || hasTeam(teamId, ['coordinador']); }
 export function canEditTeam(teamId = S.team?.id) { return isAdmin() || hasTeam(teamId, ['entrenador']); }
 export function canPlanTeam(teamId = S.team?.id) { return canEditTeam(teamId) || hasTeam(teamId, ['preparador', 'porteros', 'ayudante']); }
@@ -291,6 +317,7 @@ export function canInvite() { return isAdmin() || isCoordinator(); }
 /** ¿Puede el usuario hacer esto? Devuelve { ok, reason } para explicarlo en la interfaz. */
 export function permission(kind) {
   if (!isConfigured) return { ok: true, reason: '' };
+  if (S.viewing) return { ok: false, reason: `Estás viendo el club de ${S.viewing.student} en solo lectura: puedes comentar, pero no cambiar nada.` };
   if (!S.member) return { ok: false, reason: 'Todavía no perteneces a ningún club.' };
   const team = S.team?.name ? ` (${S.team.name})` : '';
   const no = (reason) => ({ ok: false, reason });
@@ -313,4 +340,5 @@ export function permission(kind) {
   }
 }
 
-export function roleLabel(role = S.member?.role) { return ROLE_LABEL[role] || ''; }
+export function roleLabel(role = S.member?.role) { return role === 'profesor' ? 'Profesor · solo lectura' : ROLE_LABEL[role] || ''; }
+export function isViewing() { return !!S.viewing; }

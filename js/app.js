@@ -6,7 +6,7 @@ import { startRouter, rerender } from './router.js';
 import { initNav, renderNav } from './nav.js';
 import {
   S, initAuth, onChange, signOut, selectClub, selectSeason, selectTeam, visibleTeams, isMyTeam,
-  roleLabel, isTeacher, takePendingInvite, homePath, isClubManager
+  roleLabel, isTeacher, takePendingInvite, homePath, isClubManager, stopViewing
 } from './session.js';
 
 const $ = (id) => document.getElementById(id);
@@ -104,6 +104,18 @@ function renderHeader() {
   teamSel.disabled = teams.length < 2;
   $('ctxBar').hidden = !S.club;
 
+  // Profesor viendo el club de un alumno
+  const vb = $('viewBanner');
+  vb.hidden = !S.viewing;
+  document.body.classList.toggle('viewing', !!S.viewing);
+  if (S.viewing) {
+    vb.innerHTML = `<span>👁 Estás viendo el club de <strong>${esc(S.viewing.student)}</strong> (${esc(S.club?.name || '')}) · solo lectura: puedes dejar comentarios en cada apartado.</span>
+      <button class="btn small" type="button" data-stop-view>Volver al panel del profesor</button>`;
+    vb.querySelector('[data-stop-view]').addEventListener('click', async () => {
+      try { await stopViewing(); location.hash = '#/profesor'; } catch (err) { toast(errMsg(err), 'err'); }
+    });
+  }
+
   renderMenu();
 }
 
@@ -116,7 +128,7 @@ function renderMenu() {
     return;
   }
   const name = S.profile?.full_name || S.user.email;
-  const clubs = S.memberships.length > 1 ? `
+  const clubs = S.viewing ? `<button role="menuitem" type="button" data-action="stop-view">← Volver a mi panel de profesor</button><hr>` : S.memberships.length > 1 ? `
     <p class="menu-label">Mis clubes</p>
     ${S.memberships.map((m) => `
       <button role="menuitemradio" type="button" data-club="${esc(m.club.id)}" aria-checked="${m.club.id === S.club?.id}">
@@ -127,7 +139,7 @@ function renderMenu() {
     <p class="menu-user"><strong>${esc(name)}</strong><br><small>${esc(S.user.email || '')}</small></p>
     ${clubs}
     <a role="menuitem" href="#/perfil">Mi perfil</a>
-    ${S.club ? '<a role="menuitem" href="#/config">Configuración del club</a>' : ''}
+    ${S.club && !S.viewing ? '<a role="menuitem" href="#/config">Configuración del club</a>' : ''}
     ${isTeacher() ? '<a role="menuitem" href="#/profesor">Panel del profesor</a>' : ''}
     <a role="menuitem" href="#/unirse">Unirme a una clase</a>
     <a role="menuitem" href="#/bienvenida?nuevo=1">Crear otro club</a>
@@ -150,6 +162,9 @@ menu.addEventListener('click', async (ev) => {
   closeMenu();
   if (el.dataset.club && el.dataset.club !== S.club?.id) {
     try { await selectClub(el.dataset.club); location.hash = '#' + homePath(); } catch (err) { toast(errMsg(err), 'err'); }
+  }
+  if (el.dataset.action === 'stop-view') {
+    try { await stopViewing(); location.hash = '#/profesor'; } catch (err) { toast(errMsg(err), 'err'); }
   }
   if (el.dataset.action === 'logout') {
     await signOut();
@@ -194,7 +209,7 @@ function guard(route, path) {
   if (S.recovery && S.user) return path === '/nueva-clave' ? null : '/nueva-clave';
   if (!S.user) return route.public ? null : '/login';
   if (path === '/login') return homePath();
-  if (!S.memberships.length && !route.noClub) return '/bienvenida';
+  if (!S.memberships.length && !route.noClub && !S.viewing) return '/bienvenida';
   if (route.managers && !isClubManager()) return '/inicio';   // panel y equipos: Dirección y Coordinación
   return null;
 }

@@ -1,7 +1,18 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.21.0';
+export const APP_VERSION = '0.22.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.22.0',
+    date: '27/11/2026',
+    items: [
+      'Panel del profesor (#/profesor): crear, renombrar y archivar clases; cada clase muestra su código de 6 caracteres con botón de copiar y opción de cambiarlo.',
+      'Alumnos de cada clase con su club, equipos, nº de sesiones, partidos, informes terminados, tus comentarios abiertos y última actividad; se ordena tocando la columna y se busca por nombre. «Exportar resumen de la clase» a Excel.',
+      '«Abrir club»: el profesor entra en el club del alumno en solo lectura, con el aviso «Estás viendo el club de …» y un botón para volver al panel.',
+      'Comentarios por apartado: botón 💬 en el título de cada sección de cualquier página del equipo (sesión, planificación, prepartido, acta, postpartido, plantilla, estadísticas…). El alumno ve marcados los apartados con comentarios, también en su página de inicio, responde y los marca como resueltos.',
+      'Seguridad comprobada en tests.sql: el profesor no puede editar ni borrar nada del alumno, ni hacerse miembro de su club, ni ver clubes que no están en sus clases; nadie más ve el resumen de su clase.'
+    ]
+  },
   {
     version: '0.21.0',
     date: '27/11/2026',

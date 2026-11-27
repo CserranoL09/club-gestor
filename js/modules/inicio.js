@@ -6,7 +6,7 @@ import { MODULES } from './list.js';
 import { WIDGETS, normalizeLayout, orderedModules } from '../lib/layout.js';
 import { microcycleAt } from '../lib/periodization.js';
 import { fmt, mondayOf, addDays } from '../lib/dates.js';
-import { mountThread, entityInfo } from '../lib/comments.js';
+import { mountThread, entityInfo, sectionLabel } from '../lib/comments.js';
 
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const dayDiff = (dateStr) => Math.round((new Date(dateStr + 'T00:00:00') - new Date(iso(new Date()) + 'T00:00:00')) / 86400000);
@@ -109,7 +109,7 @@ async function loadData(layout) {
   }
   if (on.has('comentarios')) {
     // Comentarios abiertos de este equipo (y los generales del club) escritos por otras personas.
-    q.comments = client.from('comments').select('id, text, created_at, entity, entity_id, section, author:profiles!comments_author_id_fkey(full_name)', { count: 'exact' })
+    q.comments = client.from('comments').select('id, text, created_at, entity, entity_id, section, author:profiles!comments_author_id_fkey(full_name, is_teacher)', { count: 'exact' })
       .eq('club_id', S.club.id).or(`team_id.eq.${team},team_id.is.null`).eq('resolved', false).is('parent_id', null).neq('author_id', S.user.id)
       .order('created_at', { ascending: false }).limit(1);
   }
@@ -209,7 +209,7 @@ function widget(key, d) {
       return card(key, `
         <p class="big-line">${n} ${n === 1 ? 'pendiente' : 'pendientes'}</p>
         <blockquote class="quote">${esc(String(c.text).slice(0, 140))}${c.text.length > 140 ? '…' : ''}</blockquote>
-        <p class="hint">${esc(c.author?.full_name || '')} · ${esc(entityInfo(c.entity, c.entity_id).label)} · ${esc(fmt(c.created_at))}</p>`, ['#/comentarios', 'Ver comentarios']);
+        <p class="hint">${c.author?.is_teacher ? '🎓 ' : ''}${esc(c.author?.full_name || '')} · ${esc(entityInfo(c.entity, c.entity_id, c.section).label)}${sectionLabel(c.section) ? ' · ' + esc(sectionLabel(c.section)) : ''} · ${esc(fmt(c.created_at))}</p>`, [entityInfo(c.entity, c.entity_id, c.section).href, 'Ir al apartado']);
     }
     default:
       return '';

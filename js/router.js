@@ -1,6 +1,7 @@
 // Rutas por hash (#/modulo/:id). Cada módulo exporta render(el, ctx).
 import { MODULES } from './modules/list.js';
 import { flushAll } from './store.js';
+import { decorateSections } from './lib/sectioncomments.js';
 
 // area: 'account' (cuenta), 'club' (Dirección y Coordinación) o 'team' (trabajo de un equipo).
 const ROUTES = [
@@ -10,7 +11,7 @@ const ROUTES = [
   { path: '/perfil', load: () => import('./modules/perfil.js'), noClub: true, area: 'account' },
   { path: '/invitacion/:token', load: () => import('./modules/invitacion.js'), public: true, noClub: true, area: 'account' },
   { path: '/unirse', load: () => import('./modules/unirse.js'), noClub: true, area: 'account' },
-  { path: '/profesor', title: 'Panel del profesor', prompt: 17, noClub: true, area: 'account' },
+  { path: '/profesor', load: () => import('./modules/profesor.js'), noClub: true, area: 'account' },
 
   { path: '/club', load: () => import('./modules/club.js'), area: 'club', managers: true },
   { path: '/equipos', load: () => import('./modules/equipos.js'), area: 'club', managers: true },
@@ -80,6 +81,7 @@ export function startRouter(main, { guard = () => null } = {}) {
       main.innerHTML = '';
       window.dispatchEvent(new CustomEvent('clubgestor:route', { detail: { path, query, route } }));
       await view.render(main, { params, query, path, module: mod, route });
+      if (mine === seq) decorateSections(main, route, params).catch((err) => console.warn(err));
     } catch (err) {
       console.error(err);
       if (mine !== seq) return;

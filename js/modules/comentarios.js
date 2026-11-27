@@ -2,7 +2,7 @@
 import { esc, busy, toast } from '../ui.js';
 import { sb } from '../supabase.js';
 import { S, visibleTeams, isClubManager, selectTeam } from '../session.js';
-import { entityInfo, mountThread, canCommentTeam } from '../lib/comments.js';
+import { entityInfo, mountThread, canCommentTeam, sectionLabel } from '../lib/comments.js';
 
 export async function render(el, ctx) {
   const teams = visibleTeams();
@@ -61,12 +61,12 @@ export async function render(el, ctx) {
     g.items.push(c);
   }
   box.innerHTML = groups.map((g, i) => {
-    const info = entityInfo(g.c.entity, g.c.entity_id);
+    const info = entityInfo(g.c.entity, g.c.entity_id, g.c.section);
     const last = g.items[0];
     return `
       <article class="card inbox-item" data-g="${i}">
         <header>
-          <div><strong>${esc(teamName(g.c.team_id))}</strong> · ${esc(info.label)}${g.c.section !== 'general' ? ` · ${esc(g.c.section)}` : ''}
+          <div><strong>${esc(teamName(g.c.team_id))}</strong> · ${esc(info.label)}${sectionLabel(g.c.section) ? ` · ${esc(sectionLabel(g.c.section))}` : ''}
             <br><small class="muted">${g.items.length} ${g.items.length === 1 ? 'comentario' : 'comentarios'} · último de ${esc(last.author?.full_name || 'alguien')}, ${esc(new Date(last.created_at).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))}</small></div>
           <div class="actions">
             <button class="btn small" type="button" data-open-thread>Ver conversación</button>
@@ -89,6 +89,6 @@ export async function render(el, ctx) {
   box.querySelectorAll('[data-go]').forEach((b) => b.addEventListener('click', () => {
     const g = groups[+b.closest('[data-g]').dataset.g];
     if (g.c.team_id !== S.team?.id) selectTeam(g.c.team_id);
-    location.hash = entityInfo(g.c.entity, g.c.entity_id).href;
+    location.hash = entityInfo(g.c.entity, g.c.entity_id, g.c.section).href;
   }));
 }

@@ -93,12 +93,13 @@ export async function render(el, ctx) {
             <span>Crearás clases con un código para tus alumnos y verás sus clubes sin poder cambiarlos.</span>
           </button>
         </div>
-        ${S.profile?.is_teacher ? '<p class="note">Ya tienes el perfil de profesor/a. El Panel del profesor llega con el Prompt 17; mientras tanto puedes explorar la app creando un club de prueba.</p>' : ''}`;
+        ${S.profile?.is_teacher ? '<p class="note">Ya tienes el perfil de profesor/a. <a href="#/profesor">Abre el Panel del profesor</a> para crear tus clases.</p>' : ''}`;
       el.querySelector('[data-teacher]').addEventListener('click', (ev) => busy(ev.currentTarget, async () => {
         const { error } = await sb().from('profiles').update({ is_teacher: true }).eq('id', S.user.id);
         if (error) throw error;
         toast('Perfil de profesor/a activado.');
-        await refresh();   // vuelve a pintar esta página con el aviso
+        await refresh();
+        location.hash = '#/profesor';
       }));
     } else {
       el.innerHTML = `

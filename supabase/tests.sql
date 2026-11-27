@@ -214,6 +214,42 @@ begin
   end;
   names := names || 'El alumno no puede cambiar el texto del profesor'::text; oks := oks || ok_;
 
+  -- ---------- Panel del profesor (Prompt 17) ----------
+  perform set_config('request.jwt.claims', json_build_object('sub', u_t, 'role', 'authenticated')::text, true);
+  select count(*) into cnt from public.class_overview(cls) where club_id = c_a;
+  names := names || 'Panel del profesor: ve el resumen del club de su alumno'::text; oks := oks || (cnt = 1);
+  select count(*) into cnt from public.class_overview(cls) where club_id = c_b;
+  names := names || 'Panel del profesor: no salen clubes de fuera de la clase'::text; oks := oks || (cnt = 0);
+  update public.clubs set name = 'Cambiado' where id = c_a;
+  get diagnostics n_ = row_count;
+  names := names || 'El profesor no puede cambiar el club del alumno'::text; oks := oks || (n_ = 0);
+  update public.matches set rival = 'Cambiado' where team_id = t_a1;
+  get diagnostics n_ = row_count;
+  update public.sessions set notes = 'Cambiado' where team_id = t_a1;
+  get diagnostics cnt = row_count;
+  names := names || 'El profesor no puede editar partidos ni sesiones del alumno'::text; oks := oks || (n_ = 0 and cnt = 0);
+  delete from public.players where team_id = t_a1;
+  get diagnostics n_ = row_count;
+  names := names || 'El profesor no puede borrar datos del alumno'::text; oks := oks || (n_ = 0);
+  begin
+    insert into public.club_members (club_id, user_id, role) values (c_a, u_t, 'admin');
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'El profesor no puede hacerse miembro del club del alumno'::text; oks := oks || ok_;
+  -- Otra persona no ve el resumen de la clase ni cambia su código
+  perform set_config('request.jwt.claims', json_build_object('sub', u_b, 'role', 'authenticated')::text, true);
+  select count(*) into cnt from public.class_overview(cls);
+  names := names || 'Panel del profesor: nadie más ve el resumen de la clase'::text; oks := oks || (cnt = 0);
+  begin
+    perform public.regenerate_join_code(cls);
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  update public.classes set name = 'Robada' where id = cls;
+  get diagnostics n_ = row_count;
+  names := names || 'Nadie más renombra la clase ni cambia su código'::text; oks := oks || (ok_ and n_ = 0);
+
   -- ---------- Perfiles de club (v0.5.0) ----------
   -- A (Dirección) prepara: comentario en el equipo A1, un partido en A1 e invitaciones
   perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);

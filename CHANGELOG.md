@@ -1,5 +1,13 @@
 # Novedades de Club Gestor
 
+## v0.22.0 · 27/11/2026 · Panel del profesor (Prompt 17)
+
+- Panel del profesor (#/profesor): crear, renombrar y archivar clases; cada clase muestra su código de 6 caracteres con botón de copiar y opción de cambiarlo.
+- Alumnos de cada clase con su club, equipos, nº de sesiones, partidos, informes terminados, tus comentarios abiertos y última actividad; se ordena tocando la columna y se busca por nombre. «Exportar resumen de la clase» a Excel.
+- «Abrir club»: el profesor entra en el club del alumno en solo lectura, con el aviso «Estás viendo el club de …» y un botón para volver al panel.
+- Comentarios por apartado: botón 💬 en el título de cada sección de cualquier página del equipo (sesión, planificación, prepartido, acta, postpartido, plantilla, estadísticas…). El alumno ve marcados los apartados con comentarios, también en su página de inicio, responde y los marca como resueltos.
+- Seguridad comprobada en tests.sql: el profesor no puede editar ni borrar nada del alumno, ni hacerse miembro de su club, ni ver clubes que no están en sus clases; nadie más ve el resumen de su clase.
+
 ## v0.21.0 · 27/11/2026 · Copia de seguridad JSON (Prompt 16)
 
 - Configuración → Copia de seguridad: «Descargar copia» guarda todo el club en un JSON (temporadas, equipos, plantillas, sesiones, biblioteca de tareas, metodología, periodizaciones, macrociclos, morfociclos, partidos e instalaciones), sin datos de otras personas ni comentarios. Las imágenes se pueden incluir, con aviso si la copia es grande.
