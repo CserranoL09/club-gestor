@@ -1,7 +1,19 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.14.0';
+export const APP_VERSION = '0.15.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.15.0',
+    date: '27/11/2026',
+    items: [
+      'Partidos: lista con jornada, fecha, local y visitante (el equipo se pone solo), resultado y estado (pendiente, convocado, jugado, con informe), con filtros.',
+      '«Nuevo partido» y «Pegar calendario» (líneas «1;12/09/2026;Rival;casa;11:00» con vista previa y revisión).',
+      'Prepartido: jornada, fecha, hora, citación, lugar, rival y local/visitante.',
+      'Convocatoria hasta el máximo del equipo (18 en F11, 14 en F7), con aviso de lesionados, orden y titulares (11 o 7, avisando si no cuadra), «Convocar disponibles» y «Copiar del partido anterior».',
+      'Sistema en un mini-campo (F11: 1-4-3-3, 1-4-4-2, 1-4-2-3-1, 1-3-5-2, 1-5-3-2; F7: 1-3-3, 1-2-3-1, 1-3-2-1) con fichas que se arrastran con el ratón o el dedo.',
+      'Planteamiento (ataque, defensa, rival), ABP a favor y en contra, observaciones e «Imprimir convocatoria».'
+    ]
+  },
   {
     version: '0.14.0',
     date: '27/11/2026',
