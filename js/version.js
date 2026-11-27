@@ -1,7 +1,14 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.13.0';
+export const APP_VERSION = '0.13.1';
 
 export const CHANGELOG = [
+  {
+    version: '0.13.1',
+    date: '27/11/2026',
+    items: [
+      'Los periodos de la Periodización y las fases del Macrociclo se pintan con el color exacto de su leyenda (Preparatorio naranja, Competitivo verde, Transición azul).'
+    ]
+  },
   {
     version: '0.13.0',
     date: '27/11/2026',

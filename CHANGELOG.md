@@ -1,5 +1,9 @@
 # Novedades de Club Gestor
 
+## v0.13.1 · 27/11/2026
+
+- Los periodos de la Periodización y las fases del Macrociclo se pintan con el color exacto de su leyenda (Preparatorio naranja, Competitivo verde, Transición azul).
+
 ## v0.13.0 · 27/11/2026 · Macrociclos (Prompt 8)
 
 - Macrociclos (hoja MACROCICLO): varios por equipo (porteros, condicional, general…) con lista y resumen.
