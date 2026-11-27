@@ -1,7 +1,20 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.16.0';
+export const APP_VERSION = '0.17.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.17.0',
+    date: '27/11/2026',
+    items: [
+      'Informe postpartido (hoja POSTPARTIDO) con jornada, fecha, duración y resultado.',
+      'Por jugador: disponible, convocado, titular/suplente y minutos desde la plantilla, el prepartido y el acta, editables (lo corregido queda marcado) y con «recalcular».',
+      'Goles a favor por origen y asistencias desde el acta; goles en contra por origen apuntados a los que estaban en el campo en ese minuto (editables); amarillas y rojas.',
+      'Evaluación colectiva (conservación, progresión, finalización, recuperación, contención, protección) con nota 1–5 y texto, con la ayuda del Excel.',
+      'Evaluación individual: texto por acción (control, pase, conducción, regate, tiro, remate, desmarque, interceptación, entrada, despeje, marcaje) y notas 1–5 por jugador con media.',
+      'Captación de jugadores rivales (dorsal, nombre, posición, pie, nivel 1–5 y observaciones).',
+      '«Marcar informe como terminado»: la lista de partidos lo muestra como «Con informe».'
+    ]
+  },
   {
     version: '0.16.0',
     date: '27/11/2026',

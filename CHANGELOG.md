@@ -1,5 +1,15 @@
 # Novedades de Club Gestor
 
+## v0.17.0 · 27/11/2026 · Informe postpartido (Prompt 12)
+
+- Informe postpartido (hoja POSTPARTIDO) con jornada, fecha, duración y resultado.
+- Por jugador: disponible, convocado, titular/suplente y minutos desde la plantilla, el prepartido y el acta, editables (lo corregido queda marcado) y con «recalcular».
+- Goles a favor por origen y asistencias desde el acta; goles en contra por origen apuntados a los que estaban en el campo en ese minuto (editables); amarillas y rojas.
+- Evaluación colectiva (conservación, progresión, finalización, recuperación, contención, protección) con nota 1–5 y texto, con la ayuda del Excel.
+- Evaluación individual: texto por acción (control, pase, conducción, regate, tiro, remate, desmarque, interceptación, entrada, despeje, marcaje) y notas 1–5 por jugador con media.
+- Captación de jugadores rivales (dorsal, nombre, posición, pie, nivel 1–5 y observaciones).
+- «Marcar informe como terminado»: la lista de partidos lo muestra como «Con informe».
+
 ## v0.16.0 · 27/11/2026 · Acta del partido (Prompt 11)
 
 - Acta del partido (hoja PARTIDO), pensada para el banquillo en el móvil o la tableta: marcador fijo arriba y resultado calculado con los eventos.
