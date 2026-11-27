@@ -1,5 +1,16 @@
 # Novedades de Club Gestor
 
+## v0.13.0 · 27/11/2026 · Macrociclos (Prompt 8)
+
+- Macrociclos (hoja MACROCICLO): varios por equipo (porteros, condicional, general…) con lista y resumen.
+- Nuevo a partir de plantilla: «Porteros» con los grupos e ítems del Excel, «Condicional», «En blanco» o las plantillas del club.
+- Semanas con las fechas reales de la temporada, cabecera de meses y fases (Preparatorio, Competitivo, Transición) pintables.
+- Marcas ✖ o nivel 1–3 tocando o arrastrando, total de semanas por contenido y resumen por grupo.
+- Grupos y contenidos editables y reordenables.
+- Editan Dirección, entrenador principal y 2.º entrenador; el preparador físico, los del área condicional, y el de porteros, los de porteros (también lo impide la base de datos).
+- En pantallas táctiles las tablas de Periodización y Macrociclo se marcan con un toque y se desplazan con el dedo.
+- Migración SQL 010_macrociclo.sql.
+
 ## v0.12.0 · 26/11/2026 · Periodización (Prompt 7)
 
 - Periodización (hoja PERIORIZACIÓN): calendario de la temporada por semanas con meses y días calculados solos.

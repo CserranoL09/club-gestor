@@ -20,7 +20,7 @@ declare
   u_y   uuid := gen_random_uuid();   -- 2.º entrenador / delegado del equipo A1
   c_a uuid; c_b uuid; s_a uuid; t_a1 uuid; t_a2 uuid; t_b uuid;
   cls uuid; code text; tok text; tok_p text; cmt uuid; ses uuid;
-  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text; c_root uuid; pr uuid; tk uuid; tpl uuid; t_tpl uuid; st text; fac uuid; vest uuid; mon date; bk uuid; ses_g uuid; m_g uuid; pl uuid; js jsonb; ses_l uuid;
+  n_ int; ok_ boolean; cnt int; s_new uuid; tok_k text; tok_y text; m_a1 uuid; ok_name_dummy text; t_new uuid; tok_t text; c_root uuid; pr uuid; tk uuid; tpl uuid; t_tpl uuid; st text; fac uuid; vest uuid; mon date; bk uuid; ses_g uuid; m_g uuid; pl uuid; js jsonb; ses_l uuid; mc uuid;
   names text[] := '{}'; oks boolean[] := '{}';
 begin
   -- Usuarios de prueba (como si se hubieran registrado)
@@ -523,6 +523,29 @@ begin
   update public.sessions set notes = 'Revisado por el delegado' where id = ses_l;
   select count(*) into cnt from public.sessions where id = ses_l and notes = 'Revisado por el delegado';
   names := names || 'Sesión: el 2.º entrenador edita toda la ficha'::text; oks := oks || (cnt = 1);
+
+  -- ---------- Macrociclos: edición según el área ----------
+  perform set_config('request.jwt.claims', json_build_object('sub', u_p, 'role', 'authenticated')::text, true);
+  insert into public.macrocycles (team_id, season_id, name, area, start_monday) values (t_a1, s_a, 'Fuerza', 'condicional', '2026-08-03') returning id into mc;
+  update public.macrocycles set name = 'Fuerza y prevención' where id = mc;
+  select count(*) into cnt from public.macrocycles where id = mc and name = 'Fuerza y prevención';
+  names := names || 'Macrociclo: el preparador crea y edita el condicional'::text; oks := oks || (cnt = 1);
+  begin
+    insert into public.macrocycles (team_id, season_id, name, area, start_monday) values (t_a1, s_a, 'Porteros', 'porteros', '2026-08-03');
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Macrociclo: el preparador no crea el de porteros'::text; oks := oks || ok_;
+  begin
+    update public.macrocycles set area = 'general' where id = mc;
+    ok_ := false;
+  exception when others then ok_ := true;
+  end;
+  names := names || 'Macrociclo: el preparador no cambia el área'::text; oks := oks || ok_;
+  perform set_config('request.jwt.claims', json_build_object('sub', u_y, 'role', 'authenticated')::text, true);
+  update public.macrocycles set weeks = 40 where id = mc;
+  select count(*) into cnt from public.macrocycles where id = mc and weeks = 40;
+  names := names || 'Macrociclo: el 2.º entrenador edita cualquiera'::text; oks := oks || (cnt = 1);
 
   -- ---------- Plantilla: datos de un jugador antes de borrarlo ----------
   perform set_config('request.jwt.claims', json_build_object('sub', u_a, 'role', 'authenticated')::text, true);

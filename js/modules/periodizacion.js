@@ -255,9 +255,12 @@ export async function render(el, ctx) {
         td.textContent = c.marks[w] != null ? LEVELS[c.marks[w]] : '';
       }
     };
+    // Con el dedo se marca al tocar (sin arrastrar), para poder desplazar la tabla.
+    let touch = false;
     table.addEventListener('pointerdown', (ev) => {
+      touch = ev.pointerType === 'touch';
       const td = ev.target.closest('td[data-w]');
-      if (!td) return;
+      if (!td || touch) return;
       ev.preventDefault();
       painting = { row: td.closest('tr'), changed: null, mode: null, last: td };
       apply(td);
@@ -274,6 +277,13 @@ export async function render(el, ctx) {
       if (ch === 'structure') { saveStructure(); redraw(); }
       if (ch === 'contents') saveContents();
     };
+    table.addEventListener('click', (ev) => {
+      const td = ev.target.closest('td[data-w]');
+      if (!td || !touch) return;
+      painting = { row: td.closest('tr'), changed: null, mode: null, last: td };
+      apply(td);
+      end();
+    });
     window.removeEventListener('pointerup', endPaint);
     endPaint = end;
     window.addEventListener('pointerup', endPaint);
