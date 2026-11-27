@@ -13,6 +13,8 @@ import { objectivesFor, AREAS, canEditMethodology } from '../lib/methodology.js'
 import { STATUS, NEXT_STATUS } from '../lib/players.js';
 import { dayGuide, guideHTML } from '../lib/morpho.js';
 import { printButton, wirePrint, printHead, kv, bar, txt } from '../lib/print.js';
+import { sheetSesion } from '../lib/excelbook.js';
+import { exportBook } from '../lib/xlsx.js';
 import {
   MATERIAL, OBJECTIVES, STAFF, ROLES, BLOCK_KINDS, newBlock, blockTime, totalTime, blockShort,
   attStatus, participates, dayKey, fromLibrary, toLibrary
@@ -265,7 +267,7 @@ export async function render(el, ctx) {
           ${prev ? `<a class="btn icon-btn" href="#/sesiones/${esc(prev.id)}" aria-label="Sesión anterior">‹</a>` : ''}
           <a class="btn" href="#/sesiones">Sesiones</a>
           ${next ? `<a class="btn icon-btn" href="#/sesiones/${esc(next.id)}" aria-label="Sesión siguiente">›</a>` : ''}
-          ${printButton()}
+          <button class="btn" type="button" data-xlsx>Excel</button>${printButton()}
         </div>
       </div>
       ${note}
@@ -299,6 +301,7 @@ export async function render(el, ctx) {
   function wire() {
     el.querySelectorAll('details.ses-sec').forEach((d) => d.addEventListener('toggle', () => { if (d.open) openSecs.add(d.dataset.sec); else openSecs.delete(d.dataset.sec); }));
     wirePrint(el, () => printView());
+    el.querySelector('[data-xlsx]').addEventListener('click', (ev) => busy(ev.currentTarget, () => exportBook(`Sesión ${s.number || ''} ${s.date} ${team.name}`, [sheetSesion([{ ...s, blocks, objectives: obj, material: mat, staff, attendance: att }], team, players)])));
     if (!anyEdit) return;
 
     // Datos generales

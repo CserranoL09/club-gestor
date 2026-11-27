@@ -7,7 +7,8 @@ const TABS = [
   ['inicio', 'Página inicial', () => import('./config-inicio.js')],
   ['temporadas', 'Temporadas y equipos', () => import('./config-temporadas.js')],
   ['personas', 'Personas', () => import('./config-personas.js')],
-  ['instalaciones', 'Instalaciones', () => import('./config-instalaciones.js')]
+  ['instalaciones', 'Instalaciones', () => import('./config-instalaciones.js')],
+  ['excel', 'Excel', () => import('./config-excel.js')]
 ];
 
 export async function render(el, ctx) {
@@ -17,7 +18,7 @@ export async function render(el, ctx) {
   const tab = TABS.find((t) => t[0] === wanted) || (perm.ok ? TABS[0] : TABS[3]);
   // En Personas, la Coordinación puede invitar: no se muestra el aviso general.
   const facilitiesTab = tab[0] === 'instalaciones';
-  const note = (tab[0] === 'personas' && canInvite()) || (facilitiesTab && canManageFacilities()) ? ''
+  const note = tab[0] === 'excel' || (tab[0] === 'personas' && canInvite()) || (facilitiesTab && canManageFacilities()) ? ''
     : facilitiesTab ? permNote({ ok: false, reason: 'Las instalaciones las mantienen la Dirección y la Coordinación.' }) : permNote(perm);
 
   el.innerHTML = `

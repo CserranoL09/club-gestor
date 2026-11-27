@@ -1,5 +1,13 @@
 # Novedades de Club Gestor
 
+## v0.20.0 · 27/11/2026 · Excel: exportar e importar (Prompt 15)
+
+- Configuración → Excel: «Exportar temporada a Excel» descarga un .xlsx con las hojas SESIÓN (una fila por sesión y bloque), PERIODIZACIÓN, MACROCICLO, MORFOCICLO, PREPARTIDO, PARTIDO, POSTPARTIDO (jornadas en columnas, como tu plantilla), PLANTILLA y ESTADÍSTICAS, con fechas reales de Excel, anchos de columna y cabeceras fijas.
+- Botón «Excel» en la sesión, la periodización, el macrociclo, el morfociclo, el prepartido, el acta y el postpartido para exportar solo lo que estás viendo.
+- «Importar desde mi Excel»: lee tu plantilla «Control competición TEMPORADA» y detecta jugadores, partidos (convocatoria, minutos, goles por origen, tarjetas, prepartido, eventos del acta y evaluación del postpartido), la sesión y los contenidos de la periodización. También vale un Excel exportado por la app o un CSV de jugadores.
+- Vista previa con casillas para elegir qué importar; se ignoran los textos de ejemplo («Jugador 1», «AAA», «dd/mm/aaaa») y avisa antes de sustituir partidos, sesiones o contenidos que ya existen.
+- Si SheetJS no se puede cargar, se descarga en CSV.
+
 ## v0.19.0 · 27/11/2026 · Imprimir y PDF (Prompt 14)
 
 - Imprimir / Guardar PDF en todos los módulos con una vista limpia: fondo blanco, escudo y colores del club, sin botones ni comentarios, y el nombre del PDF ya puesto (por ejemplo «Sesión 12 2026-10-14 Alevín A»).

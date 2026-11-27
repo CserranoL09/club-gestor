@@ -10,6 +10,8 @@ import {
   weeksOf, rangesToWeeks, weeksToRanges, skippedWeeks, microcycleAt, defaultPeriodization, AREAS, LEVELS, DEFAULT_LEGEND
 } from '../lib/periodization.js';
 import { printButton, wirePrint, printHead } from '../lib/print.js';
+import { sheetPeriodizacion } from '../lib/excelbook.js';
+import { exportBook } from '../lib/xlsx.js';
 
 const brush = { key: 'temp', macro: '1', meso: '1', content: 'x' };
 let endPaint = () => {};
@@ -224,7 +226,7 @@ export async function render(el, ctx) {
     el.innerHTML = `${head}${permNote(perm)}
       <div class="per-top no-print">
         <p>${mc ? `Hoy: <strong>${mc.number != null ? `microciclo ${mc.number}` : 'semana sin microciclo'}</strong>${mc.period ? ` · ${esc(mc.period)}` : ''}` : 'Hoy está fuera de la periodización.'}</p>
-        <div class="actions">${nowWeek >= 0 ? '<button class="btn" type="button" data-today>Ir a hoy</button>' : ''}${printButton()}</div>
+        <div class="actions">${nowWeek >= 0 ? '<button class="btn" type="button" data-today>Ir a hoy</button>' : ''}<button class="btn" type="button" data-xlsx>Excel</button>${printButton()}</div>
       </div>
       <div class="legend-inline">${p.legend.map((l) => `<span><i style="background:${esc(l.color)}"></i>${esc(l.label)}${l.holiday && p.options.skip_holidays ? ' (sin microciclo)' : ''}</span>`).join('')}<span><i class="dot ses"></i>Sesión</span><span><i class="dot mat"></i>Partido</span></div>
       ${paletteHTML()}
@@ -249,6 +251,7 @@ export async function render(el, ctx) {
   // ---------------------------------------------------------------- eventos
   function wire() {
     wirePrint(el, () => printView());
+    el.querySelector('[data-xlsx]').addEventListener('click', (ev) => busy(ev.currentTarget, () => exportBook(`Periodización ${team.name} ${season?.name || ''}`, [sheetPeriodizacion(p)])));
     el.querySelector('.per-settings').addEventListener('toggle', (ev) => { settingsOpen = ev.target.open; });
     el.querySelector('[data-today]')?.addEventListener('click', () => {
       const s = el.querySelector('[data-scroll]');

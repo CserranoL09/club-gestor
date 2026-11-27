@@ -9,6 +9,8 @@ import { fmt } from '../lib/dates.js';
 import { mountThread } from '../lib/comments.js';
 import { sides } from '../lib/matches.js';
 import { printButton, wirePrint, printHead, kv, bar, txt } from '../lib/print.js';
+import { sheetPartido } from '../lib/excelbook.js';
+import { exportBook } from '../lib/xlsx.js';
 import { EVENT_TYPES, ORIGINS, DEFAULT_COUNTERS, STAT_FIELDS, sortEvents, scoreOf, computeStats, onField, clockMinute } from '../lib/acta.js';
 
 const CLOCK_KEY = (id) => `clubgestor:clock:${id}`;
@@ -164,7 +166,7 @@ export async function render(el, ctx) {
       <div class="page-head acta-head">
         <div><p class="eyebrow">${m.matchday != null ? `Jornada ${m.matchday} · ` : ''}${m.date ? esc(fmt(new Date(m.date + 'T00:00:00'))) : 'Sin fecha'}</p>
           <h1 class="match-title"><span class="${m.is_home ? 'us' : ''}">${esc(home)}</span> <span class="vs">vs</span> <span class="${m.is_home ? '' : 'us'}">${esc(away)}</span></h1></div>
-        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a>${printButton()}</div>
+        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a><button class="btn" type="button" data-xlsx>Excel</button>${printButton()}</div>
       </div>
       <nav class="tabs page-tabs no-print" aria-label="Partido">
         <a class="tab" href="#/partidos/${esc(m.id)}/prepartido">Prepartido</a>
@@ -307,6 +309,7 @@ export async function render(el, ctx) {
 
   function wire() {
     wirePrint(el, () => printView());
+    el.querySelector('[data-xlsx]').addEventListener('click', () => exportBook(`Acta J${m.matchday ?? ''} ${team.name}`, [sheetPartido([m], team, players)]));
     wireClock();
     wireLists();
     if (!canEdit) return;

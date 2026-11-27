@@ -8,6 +8,8 @@ import { MONTHS, fmt } from '../lib/dates.js';
 import { mountThread } from '../lib/comments.js';
 import { rangesToWeeks, weeksToRanges, LEVELS } from '../lib/periodization.js';
 import { printButton, wirePrint, printHead } from '../lib/print.js';
+import { sheetMacrociclo } from '../lib/excelbook.js';
+import { exportBook } from '../lib/xlsx.js';
 import { MACRO_AREAS, PHASES, BUILTIN_TEMPLATES, areaName, defaultSpan, defaultPhases, macroWeeks, itemTotal, groupWeek, groupTotal } from '../lib/macro.js';
 
 const brush = { phase: 'preparatorio', mark: 'x' };
@@ -223,7 +225,7 @@ async function editor(el, ctx) {
       <div class="page-head">
         <div><p class="eyebrow">${esc(team.name)} · ${esc(areaName(m.area))}</p><h1>📈 ${esc(m.name)}</h1>
           <p>${fmt(weeks[0].monday)} – ${fmt(end)} · ${m.weeks} semanas</p></div>
-        <div class="actions no-print"><a class="btn" href="#/macrociclo">← Macrociclos</a>${nowWeek >= 0 ? '<button class="btn" type="button" data-today>Ir a hoy</button>' : ''}${printButton()}</div>
+        <div class="actions no-print"><a class="btn" href="#/macrociclo">← Macrociclos</a>${nowWeek >= 0 ? '<button class="btn" type="button" data-today>Ir a hoy</button>' : ''}<button class="btn" type="button" data-xlsx>Excel</button>${printButton()}</div>
       </div>
       ${note}
       <div class="legend-inline">${PHASES.map((p) => `<span><i style="background:${p.color}"></i>${p.label}</span>`).join('')}<span><i class="lv-x"></i>✖ Trabajado</span><span><i class="lv-1"></i>Nivel 1</span><span><i class="lv-2"></i>Nivel 2</span><span><i class="lv-3"></i>Nivel 3</span></div>
@@ -258,6 +260,7 @@ async function editor(el, ctx) {
 
   function wire() {
     wirePrint(el, () => printView());
+    el.querySelector('[data-xlsx]').addEventListener('click', (ev) => busy(ev.currentTarget, () => exportBook(`${m.name} ${team.name}`, [sheetMacrociclo([m])])));
     el.querySelector('[data-today]')?.addEventListener('click', () => {
       const s = el.querySelector('[data-scroll]'); const c = s?.querySelector('th.wk-n.now');
       if (s && c) s.scrollTo({ left: Math.max(0, c.offsetLeft - 200 - s.clientWidth / 3), behavior: 'smooth' });

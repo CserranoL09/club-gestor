@@ -7,6 +7,8 @@ import { autosaver } from '../store.js';
 import { mountThread } from '../lib/comments.js';
 import { DAYS, relLabel, intensityOf, INTENSITY } from '../lib/morpho.js';
 import { printButton, wirePrint, printHead, txt } from '../lib/print.js';
+import { sheetMorfociclo } from '../lib/excelbook.js';
+import { exportBook } from '../lib/xlsx.js';
 
 const SHORT = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 /** Alto aproximado de la celda para que se lea el texto entero (unos 16 caracteres por línea). */
@@ -67,7 +69,7 @@ export async function render(el, ctx) {
         <div class="actions">
           ${m.is_default ? '<span class="pill">★ Predeterminado</span>' : canEdit ? '<button class="btn small" type="button" data-default>Marcar como predeterminado</button>' : ''}
           ${canEdit ? '<button class="btn small" type="button" data-dup>Duplicar</button>' : ''}
-          ${printButton(null, 'btn small')}
+          <button class="btn small" type="button" data-xlsx>Excel</button>${printButton(null, 'btn small')}
           ${canDelete && all.length > 1 ? '<button class="btn small danger" type="button" data-del>Borrar</button>' : ''}
         </div>
         <p class="hint">El predeterminado es la guía que aparece al crear y preparar sesiones. Los colores de los días salen de la fila «Complej./Intens.» (baja, media, alta).</p>
@@ -133,6 +135,7 @@ export async function render(el, ctx) {
   function wire() {
     el.querySelector('[data-rel]').addEventListener('change', (ev) => { location.hash = link({ rel: ev.target.checked ? '1' : '' }); });
     wirePrint(el, () => printView());
+    el.querySelector('[data-xlsx]').addEventListener('click', (ev) => busy(ev.currentTarget, () => exportBook(`${m.name} ${team.name}`, [sheetMorfociclo([m])])));
     el.querySelector('[data-new]')?.addEventListener('click', () => create());
     if (!canEdit) return;
     el.querySelector('[data-name]').addEventListener('input', (ev) => { const v = ev.target.value.trim(); if (v) { m.name = v; saver.set({ name: v }); } });

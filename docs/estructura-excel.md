@@ -97,3 +97,12 @@ Resumen de cada hoja para construir los módulos de Club Gestor. Solo estructura
   - Defensa: Interceptación · Entrada · Despeje · Marcaje. Ayuda: ídem para las acciones individuales defensivas.
 - **Captación:** Dorsal · Jugador · Posición · Pie · Nivel · Observaciones.
 - Textos de ejemplo a ignorar al importar: «Jugador 1…18», «AAA…ZZZ», «dd/mm/aaaa», «hh:mm».
+
+## Importación (v0.20.0)
+
+Celdas que lee la app de la plantilla:
+- **POSTPARTIDO:** «Equipo» en la fila 5; jornadas desde la columna C en bloques de 15 columnas (fila 8 jornada, 9 fecha, 11 local · goles local [+6] · goles visitante [+8] · visitante [+9]); jugadores desde la fila 14 (A dorsal, B nombre). Disponible «D»/«No D.»/«ND», convocado «C», titular «T»/«S». La evaluación se busca por los rótulos de cada fase o acción y el texto de debajo. Las columnas de «Totales» se ignoran.
+- **PREPARTIDO:** fila 2 bajo los rótulos (Jornada, Fecha, «hh:mm (hh:mm)» = hora y citación, Lugar, Local, Visitante); alineación en A5:B22; planteamiento a la derecha de Ataque, Defensa y Rival.
+- **PARTIDO:** cabecera en la fila 2; tabla Nº · Jugador · Gol · Asis · TA · TR · Min; eventos Min · Res/Tipo («1-0», «Amarilla», «Roja») · Jugador · Origen/Motivo.
+- **SESIÓN:** datos en la fila 3; cuerpo técnico y objetivos a la derecha de sus rótulos; material con la cantidad a la derecha; asistencia en dos columnas con estado D/L/A; cada bloque desde su rótulo (WARM - UP, TAREA 1…4, VUELTA A LA CALMA) con el título tras «TITULO DE LA TAREA:».
+- **PERIORIZACIÓN:** meses en la fila DÍA/MES y días de lunes a domingo debajo (una semana puede ocupar dos columnas al cambiar de mes); contenidos en las filas tras MICROCICLO con ✖ o 1–3.

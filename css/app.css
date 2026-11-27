@@ -1534,3 +1534,15 @@ body.has-nav .update-bar { bottom: calc(84px + env(safe-area-inset-bottom)); }
 #printRoot .pr-screen .hint { display: none; }
 #printRoot .pr-screen .card { padding: 8px 12px; margin-top: 8px; }
 #printRoot .pr-screen h2 { font-size: 11pt; }
+
+/* ===== v0.20.0 · Excel: exportar e importar (Prompt 15) ===== */
+.imp-preview { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.imp-preview h3 { margin: 0 0 4px; }
+.imp-group { padding: 8px 12px 10px; }
+.imp-head .check { margin: 4px 0; }
+.imp-head .hint { margin: 0 0 6px 30px; }
+.imp-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 0 16px; max-height: 340px; overflow: auto; }
+.imp-item { margin: 4px 0; align-items: flex-start; min-width: 0; }
+.imp-item span { min-width: 0; overflow-wrap: anywhere; }
+.imp-item small { display: block; }
+.warn-text b, b.warn-text { color: var(--warn); }

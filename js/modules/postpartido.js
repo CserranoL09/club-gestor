@@ -9,6 +9,8 @@ import { mountThread } from '../lib/comments.js';
 import { POSITIONS, FEET } from '../lib/players.js';
 import { sides, score } from '../lib/matches.js';
 import { printButton, wirePrint, printHead, bar, txt } from '../lib/print.js';
+import { sheetPostpartido } from '../lib/excelbook.js';
+import { exportBook } from '../lib/xlsx.js';
 import { COLLECTIVE, INDIVIDUAL, ORIGINS, ORIGIN_SHORT, playerRows } from '../lib/post.js';
 
 const open = new Set(['jugadores', 'colectiva']);
@@ -155,7 +157,7 @@ export async function render(el, ctx) {
         <div><p class="eyebrow">Informe postpartido · ${esc(team.name)}${team.category ? ' · ' + esc(team.category) : ''}</p>
           <h1 class="match-title"><span class="${m.is_home ? 'us' : ''}">${esc(home)}</span> <span class="vs">${esc(score(m)) || 'vs'}</span> <span class="${m.is_home ? '' : 'us'}">${esc(away)}</span></h1>
           <p>${m.matchday != null ? `Jornada ${m.matchday} · ` : ''}${m.date ? esc(fmt(new Date(m.date + 'T00:00:00'))) : 'Sin fecha'} · Duración ${total} min</p></div>
-        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a>${printButton()}</div>
+        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a><button class="btn" type="button" data-xlsx>Excel</button>${printButton()}</div>
       </div>
       <nav class="tabs page-tabs no-print" aria-label="Partido">
         <a class="tab" href="#/partidos/${esc(m.id)}/prepartido">Prepartido</a>
@@ -181,6 +183,7 @@ export async function render(el, ctx) {
   function wire() {
     el.querySelectorAll('details.ses-sec').forEach((d) => d.addEventListener('toggle', () => { if (d.open) open.add(d.dataset.sec); else open.delete(d.dataset.sec); }));
     wirePrint(el, () => printView());
+    el.querySelector('[data-xlsx]').addEventListener('click', (ev) => busy(ev.currentTarget, () => exportBook(`Postpartido J${m.matchday ?? ''} ${team.name}`, [sheetPostpartido([m], team, players, total)])));
     if (!canEdit) return;
     el.querySelector('[data-done]').addEventListener('click', (ev) => busy(ev.currentTarget, async () => {
       await saver.flush();

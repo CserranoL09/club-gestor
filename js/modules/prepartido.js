@@ -8,6 +8,8 @@ import { fmt } from '../lib/dates.js';
 import { mountThread } from '../lib/comments.js';
 import { STATUS, POSITIONS } from '../lib/players.js';
 import { printButton, wirePrint, printHead, bar, txt } from '../lib/print.js';
+import { sheetPrepartido } from '../lib/excelbook.js';
+import { exportBook } from '../lib/xlsx.js';
 import { SYSTEMS, starters, squadMax, sides, score } from '../lib/matches.js';
 
 const POS_ORDER = { POR: 0, DEF: 1, LAT: 2, MC: 3, EXT: 4, DEL: 5 };
@@ -52,7 +54,7 @@ export async function render(el, ctx) {
       <div class="page-head">
         <div><p class="eyebrow">${m.matchday != null ? `Jornada ${m.matchday} · ` : ''}${m.date ? esc(fmt(new Date(m.date + 'T00:00:00'))) : 'Sin fecha'}${m.time ? ` · ${esc(m.time.slice(0, 5))}` : ''}</p>
           <h1 class="match-title"><span class="${m.is_home ? 'us' : ''}">${esc(home)}</span> <span class="vs">${esc(score(m)) || 'vs'}</span> <span class="${m.is_home ? '' : 'us'}">${esc(away)}</span></h1></div>
-        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a>${printButton([['list', 'Convocatoria'], ['system', 'Convocatoria con el sistema'], ['full', 'Prepartido completo (cuerpo técnico)']])}</div>
+        <div class="actions no-print"><a class="btn" href="#/partidos">← Partidos</a><button class="btn" type="button" data-xlsx>Excel</button>${printButton([['list', 'Convocatoria'], ['system', 'Convocatoria con el sistema'], ['full', 'Prepartido completo (cuerpo técnico)']])}</div>
       </div>
       <nav class="tabs page-tabs no-print" aria-label="Partido">
         <a class="tab" href="#/partidos/${esc(m.id)}/prepartido" aria-current="page">Prepartido</a>
@@ -162,6 +164,9 @@ export async function render(el, ctx) {
         <text text-anchor="middle" dy="10.5" font-size="3.9" font-weight="700" fill="#111">${esc(short(t.p))}</text></g>`).join('')}
     </svg>`;
   }
+  function wireXlsx(root) {
+    root.querySelector('[data-xlsx]').addEventListener('click', (ev) => busy(ev.currentTarget, () => exportBook(`Prepartido J${m.matchday ?? ''} ${team.name}`, [sheetPrepartido([m], team, players)])));
+  }
   function printView(opt) {
     const [home, away] = sides(m, team.name);
     const withSystem = opt === 'system' || opt === 'full';
@@ -205,6 +210,7 @@ export async function render(el, ctx) {
   // ---------------------------------------------------------------- eventos
   function wire() {
     wirePrint(el, (opt) => printView(opt));
+    wireXlsx(el);
     if (!canEdit) return;
     el.querySelectorAll('[data-f]').forEach((inp) => inp.addEventListener('change', () => {
       const k = inp.dataset.f;
@@ -222,6 +228,7 @@ export async function render(el, ctx) {
         const [h, a] = sides(m, team.name);
         el.querySelector('[data-home]').textContent = h; el.querySelector('[data-away]').textContent = a;
         wirePrint(el.querySelector('.page-head'), (opt) => printView(opt));
+        wireXlsx(el.querySelector('.page-head'));
       }
     }));
     el.querySelectorAll('[data-plan]').forEach((ta) => ta.addEventListener('input', () => { m.plan = { ...m.plan, [ta.dataset.plan]: ta.value }; saver.set({ plan: m.plan }); }));

@@ -1,7 +1,18 @@
 // Sube APP_VERSION y añade la entrada al principio de CHANGELOG en cada versión nueva.
-export const APP_VERSION = '0.19.0';
+export const APP_VERSION = '0.20.0';
 
 export const CHANGELOG = [
+  {
+    version: '0.20.0',
+    date: '27/11/2026',
+    items: [
+      'Configuración → Excel: «Exportar temporada a Excel» descarga un .xlsx con las hojas SESIÓN (una fila por sesión y bloque), PERIODIZACIÓN, MACROCICLO, MORFOCICLO, PREPARTIDO, PARTIDO, POSTPARTIDO (jornadas en columnas, como tu plantilla), PLANTILLA y ESTADÍSTICAS, con fechas reales de Excel, anchos de columna y cabeceras fijas.',
+      'Botón «Excel» en la sesión, la periodización, el macrociclo, el morfociclo, el prepartido, el acta y el postpartido para exportar solo lo que estás viendo.',
+      '«Importar desde mi Excel»: lee tu plantilla «Control competición TEMPORADA» y detecta jugadores, partidos (convocatoria, minutos, goles por origen, tarjetas, prepartido, eventos del acta y evaluación del postpartido), la sesión y los contenidos de la periodización. También vale un Excel exportado por la app o un CSV de jugadores.',
+      'Vista previa con casillas para elegir qué importar; se ignoran los textos de ejemplo («Jugador 1», «AAA», «dd/mm/aaaa») y avisa antes de sustituir partidos, sesiones o contenidos que ya existen.',
+      'Si SheetJS no se puede cargar, se descarga en CSV.'
+    ]
+  },
   {
     version: '0.19.0',
     date: '27/11/2026',

@@ -46,6 +46,7 @@ export async function render(el, ctx) {
       <div><h1>👥 Plantilla</h1><p>${esc(team.name)}${team.category ? ' · ' + esc(team.category) : ''} · ${esc(S.season?.name || '')}</p></div>
       <div class="actions no-print">
         <button class="btn" type="button" data-excel${players.length ? '' : ' disabled'}>Excel</button>
+        ${canEdit ? '<a class="btn" href="#/config?tab=excel">Importar desde Excel</a>' : ''}
         ${printButton()}
       </div>
     </div>
